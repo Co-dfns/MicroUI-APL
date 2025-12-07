@@ -1,0 +1,770 @@
+:Namespace mu
+
+⎕IO ⎕CT←0
+
+⍝ Constants
+
+CLIP_PART	CLIP_ALL 									← 1 2
+
+COMMAND_JUMP	COMMAND_CLIP	COMMAND_RECT	COMMAND_TEXT	COMMAND_ICON		← 1+⍳5
+
+COLOR_TEXT		COLOR_BORDER		COLOR_WINDOWBG	COLOR_TITLEBG		←   ⍳4
+COLOR_TITLETEXT		COLOR_PANELBG		COLOR_BUTTON	COLOR_BUTTONHOVER	←  4+⍳4
+COLOR_BUTTONFOCUS	COLOR_BASE		COLOR_BASEHOVER	COLOR_BASEFOCUS		←  8+⍳4
+COLOR_SCROLLBASE	COLOR_SCROLLTHUMB	COLOR_MAX				← 12+⍳3
+
+ICON_CLOSE	CON_CHECK	ICON_COLLAPSED	ICON_EXPANDED				← 1+⍳4
+
+RES_ACTIVE	RES_SUBMIT	RES_CHANGE						← 1 2 4
+
+OPT_ALIGNCENTER	OPT_ALIGNRIGHT	OPT_NOINTERACT	OPT_NOFRAME	OPT_NORESIZE		← 2*   ⍳5
+OPT_NOSCROLL	OPT_NOCLOSE	OPT_NOTITLE	OPT_HOLDFOCUS	OPT_AUTOSIZE		← 2* 5+⍳5
+OPT_POPUP	OPT_CLOSED	OPT_EXPANDED						← 2*10+⍳3
+
+MOUSE_LEFT	MOUSE_RIGHT	MOUSE_MIDDLE						← 1 2 4
+
+KEY_SHIFT	KEY_CTRL	KEY_ALT		KEY_BACKSPACE	KEY_RETURN 		← 1 2 4 8 16
+
+RELATIVE 	ABSOLUTE								← 1 2
+
+⍝ Static buffer sizes
+
+COMMANDLIST_SIZE	← 2*13
+ROOTLIST_SIZE		← 32
+CONTAINERSTACK_SIZE	← 32
+CLIPSTACK_SIZE		← 32
+IDSTACK_SIZE		← 32
+LAYOUTSTACK_SIZE	← 16
+CONTAINERPOOL_SIZE	← 48
+TREENODEPOOL_SIZE	← 48
+MAX_WIDTHS		← 16
+REAL_FMT		← '%.3g'
+SLIDER_FMT		← '%.2f'
+MAX_FMT			← 127
+
+⍝ Default Callbacks
+
+font_size←24
+font_spacing←0
+icons←⎕UCS ' '
+
+text_width←{font←⍺ ⋄ str←⍵
+	(1=≢font)∧0=⊃font:rl.MeasureText str font_size
+	⊃rl.MeasureTextEx font str font_size font_spacing
+}
+
+text_height←{font←⍵ ⋄ font_size}
+
+draw_frame←{rect←⍺ ⋄ colorid←⍵
+	rect draw_rect style_colors[colorid;]:
+	colorid∊COLOR_SCROLLBASE COLOR_SCROLLTHUMB COLOR_TITLEBG:_←0
+	0≠3⊃c←style_colors[COLOR_BORDER;]:(rect expand_rect 1)draw_box c
+_←0}
+
+∇{z}←process_input
+ z←0
+ input_mousemove rl.GetMousePosition⍬
+ {}1 {⍺ input_mousedown ⍵}⍣(rl.IsMouseButtonPressed 0)⊢rl.GetMousePosition⍬
+ {}1 {⍺ input_mouseup ⍵}⍣(rl.IsMouseButtonReleased 0)⊢rl.GetMousePosition⍬
+ input_scroll rl.GetMouseWheelMoveV⍬
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_BACKSPACE)⊢KEY_BACKSPACE
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_ENTER)⊢KEY_RETURN
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_RIGHT_SHIFT)⊢KEY_SHIFT
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_LEFT_SHIFT)⊢KEY_SHIFT
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_RIGHT_CONTROL)⊢KEY_CTRL
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_LEFT_CONTROL)⊢KEY_CTRL
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_RIGHT_ALT)⊢KEY_ALT
+ {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_LEFT_ALT)⊢KEY_ALT
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_BACKSPACE)⊢KEY_BACKSPACE
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_ENTER)⊢KEY_RETURN
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_RIGHT_SHIFT)⊢KEY_SHIFT
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_LEFT_SHIFT)⊢KEY_SHIFT
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_RIGHT_CONTROL)⊢KEY_CTRL
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_LEFT_CONTROL)⊢KEY_CTRL
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_RIGHT_ALT)⊢KEY_ALT
+ {}input_keyup⍣(rl.IsKeyReleased rl.KeyboardKey.KEY_LEFT_ALT)⊢KEY_ALT
+ {0=⊃c←rl.GetCharPressed⍬:_←0 ⋄ input_text⊢'UTF-8'⎕UCS c: ⋄ ∇⍬}⍬
+∇
+
+∇{z}←render;i;icn;txr
+ z←0 ⋄ i←¯1
+
+ rl.BeginDrawing⍬
+  rl.ClearBackground 120 125 130 255
+
+ PROC_CMD:
+  →END⌿⍨¯1=i←next_command i
+  cmd←i⊃command_list
+  →(COMMAND_RECT COMMAND_CLIP COMMAND_TEXT COMMAND_ICON=⊃cmd)⌿RECT CLIP TEXT ICON
+  'UNKNOWN COMMAND'⎕SIGNAL 99
+
+  RECT:rl.DrawRectangle (1⊃cmd),cmd[2] ⋄ →PROC_CMD
+  TEXT:rl.DrawTextEx cmd[1 4 2],font_size,font_spacing,cmd[3] ⋄ →PROC_CMD
+  CLIP:rl.BeginScissorMode 1⊃cmd ⋄ →PROC_CMD
+  ICON:rl.DrawTextCodepoint icon_font(icons[2⊃cmd])(2↑1⊃cmd)(1 3⊃cmd)(3⊃cmd) ⋄ →PROC_CMD
+
+END:
+ rl.EndDrawing⍬
+∇
+
+⍝ Fields
+
+cnt_head←0 ⋄ cnt_tail←1 ⋄ cnt_zidx←2 ⋄ cnt_open←3
+cnt_rect←4 5 6 7 ⋄ cnt_body←8 9 10 11 
+cnt_content_size←12 13 ⋄ cnt_scroll←14 15
+
+lyt_body lyt_next lyt_pos lyt_size lyt_max lyt_widths←(⍳¨+0,¯1↓+⍀)4 4 2 2 2 MAX_WIDTHS
+lyt_items lyt_item_index lyt_next_row lyt_next_type lyt_indent lyt_sizeof←(⌈⌿lyt_widths)+1+⍳6
+
+pool_id pool_last_update←⍳2
+
+jump_dst←1
+
+⍝ Core Functions
+
+∇{Z}←init
+⍝ Default Style
+ style_font style_size style_padding style_spacing style_indent←0 (128 24) 5 4 24
+ style_title_height style_scrollbar_size style_thumb_size←32 12 8
+ style_colors←0 4⍴⍬
+ style_colors⍪← 230 230 230 255
+ style_colors⍪←  25  25  25 255
+ style_colors⍪←  50  50  50 255
+ style_colors⍪←  25  25  25 255
+ style_colors⍪← 240 240 240 255
+ style_colors⍪←   0   0   0   0
+ style_colors⍪←  75  75  75 255
+ style_colors⍪←  95  95  95 255
+ style_colors⍪← 115 115 115 255
+ style_colors⍪←  30  30  30 255
+ style_colors⍪←  35  35  35 255
+ style_colors⍪←  40  40  40 255
+ style_colors⍪←  43  43  43 255
+ style_colors⍪←  30  30  30 255
+
+⍝ Core State
+ hover focus last_id last_rect last_zindex updated_focus frame←0 0 0 (0 0 0 0) 0 0 0
+ hover_root next_hover_root scroll_target←¯1
+ number_edit_buf number_edit←'' 0
+ 
+⍝ Stacks
+ command_list_idx command_list←0(COMMANDLIST_SIZE⍴⊂⍬)
+ root_list_idx root_list←0(ROOTLIST_SIZE⍴¯1)
+ container_stack_idx container_stack←0(CONTAINERSTACK_SIZE⍴¯1)
+ clip_stack_idx clip_stack←0(CLIPSTACK_SIZE 4⍴⍬)
+ id_stack_idx id_stack←0(IDSTACK_SIZE⍴⍬)
+ layout_stack_idx layout_stack←0(LAYOUTSTACK_SIZE lyt_sizeof⍴⍬)
+
+⍝ Retained State Pools
+ container_pool←CONTAINERPOOL_SIZE 2⍴⍬
+ containers←CONTAINERPOOL_SIZE 16⍴16↑¯1 ¯1
+ treenode_pool←TREENODEPOOL_SIZE 2⍴⍬
+
+⍝ Input State
+ mouse_pos last_mouse_pos mouse_delta scroll_delta←⊂0 0
+ mouse_down mouse_pressed key_down key_pressed←0
+ text_input←''
+ 
+ Z←0
+∇
+
+∇{Z}←begin
+ command_list_idx←0 ⋄ root_list_idx←0 ⋄ scroll_target←¯1
+ hover_root←next_hover_root ⋄ next_hover_root←¯1
+ mouse_delta←mouse_pos-last_mouse_pos
+ frame+←1
+ Z←0
+∇
+
+∇{Z}←end;i
+ Z←0
+
+ assert 0=container_stack_idx clip_stack_idx id_stack_idx layout_stack_idx
+
+ →FOCUS⌿⍨scroll_target=¯1 ⋄ containers[scroll_target;cnt_scroll]+←scroll_delta
+
+FOCUS:focus×←updated_focus ⋄ updated_focus←0
+
+HOVER:→RESET⌿⍨mouse_pressed⍲next_hover_root≠¯1
+ →RESET⌿⍨(last_zindex∘>⍲0∘≤)containers[next_hover_root;cnt_zidx]
+ bring_to_front next_hover_root
+
+RESET:key_pressed text_input mouse_pressed scroll_delta last_mouse_pos←0 '' 0 (0 0) mouse_pos
+
+ root_list[i]←root_list[⍋containers[root_list[i←⍳root_list_idx];cnt_zidx]]
+
+ →0⌿⍨0=≢i 
+
+ (0⊃command_list)[jump_dst]←containers[root_list[0];cnt_head]+1
+
+ →TAIL⌿⍨1=≢i
+
+ {}2{(containers[⍺;cnt_tail]⊃command_list)[jump_dst]←containers[⍵;cnt_head]+1}⌿root_list[i]
+
+TAIL:
+ (containers[root_list[⊃⌽i];cnt_tail]⊃command_list)[jump_dst]←command_list_idx
+∇
+
+set_focus←{focus∘←⍵ ⋄ updated_focus∘←1 ⋄ _←0}
+
+get_id←{data←⍵
+	id_stack_idx=0:⊢last_id∘←HASH_INITIAL hash data
+	⊢last_id∘←id_stack[id_stack_idx-1] hash data
+}
+
+push_id←{id_stack[id_stack_idx]←get_id ⍵ ⋄ id_stack_idx+←1 ⋄ _←0}
+
+∇{z}←pop_id
+ z←0 ⋄ id_stack_idx-←1
+∇
+
+push_clip_rect←{
+	clip_stack[clip_stack_idx;]←⍵ intersect_rects get_clip_rect
+	clip_stack_idx+←1
+_←0}
+
+∇{z}←pop_clip_rect
+ z←0 ⋄ clip_stack_idx-←1
+∇
+
+∇z←get_clip_rect
+ z←clip_stack[clip_stack_idx-1;]
+∇
+
+check_clip←{rx ry rw rh←⍵ ⋄ cx cy cw ch←get_clip_rect
+	(rx>cx+cw)∨(cx>rx+rw)∨(ry>cy+ch)∨(cy>ry+rh):CLIP_ALL
+	(rx≥cx)∧((rx+rw)≤cx+cw)∧(ry≥cy)∧((ry+rh)≤cy+ch):0
+	CLIP_PART
+}
+
+∇z←get_current_container
+ z←container_stack[container_stack_idx-1]
+∇
+
+get_container←{get_container_id get_id ⍵}
+
+bring_to_front←{cnt←⍵ ⋄ containers[cnt;cnt_zidx]←last_zindex∘←last_zindex+1 ⋄ _←0}
+
+⍝ Pools
+
+pool_init_container←{id←⍵
+	n←⊃⍋container_pool[;pool_last_update]
+	container_pool[n;pool_id]←id
+	pool_update_container n:
+	n
+}
+
+pool_init_treenode←{id←⍵
+	n←⊃⍋treenode_pool[;pool_last_update]
+	treenode_pool[n;pool_id]←id
+	pool_update_treenode n:
+	n
+}
+
+pool_update_container←{container_pool[⍵;pool_last_update]←frame ⋄ _←0}
+pool_update_treenode←{treenode_pool[⍵;pool_last_update]←frame ⋄ _←0}
+
+pool_get←{pool←⍺ ⋄ id←⍵ ⋄ (≢⍺)=i←⍺[;pool_id]⍳⍵:¯1 ⋄ i}
+
+⍝ Input Handlers
+
+input_mousemove←{mouse_pos∘←⍵ ⋄ _←0}
+input_mousedown←{btn←⍺ ⋄ input_mousemove ⍵: ⋄ mouse_down(32bit∨)←btn ⋄ mouse_pressed(32bit∨)←btn ⋄ _←0}
+input_mouseup←{btn←⍺ ⋄ input_mousemove ⍵: ⋄ mouse_down(32bit∧)←32bit~btn ⋄ _←0}
+input_scroll←{scroll_delta+←⍵ ⋄ _←0}
+input_keydown←{key_pressed(32bit∨)←⍵ ⋄ key_down(32bit∨)←⍵ ⋄ _←0}
+input_keyup←{key_down(32bit∧)←32bit~⍵ ⋄ _←0}
+input_text←{text_input,←⍵ ⋄ _←0}
+
+⍝ Command List
+
+push_command←{command_list[command_list_idx]←⊂⍵ ⋄ command_list_idx+←1 ⋄ _←0}
+
+next_command←{
+	{
+		⍵≥command_list_idx:¯1
+		COMMAND_JUMP≠⊃⍵⊃command_list:⍵
+		∇ (⍵⊃command_list)[jump_dst]
+	}⍵+1
+}
+
+set_clip←{push_command COMMAND_CLIP ⍵}
+
+draw_rect←{rx ry rw rh←rect←⍺ intersect_rects get_clip_rect
+	(rw>0)∧rh>0:push_command COMMAND_RECT rect ⍵
+_←0}
+
+draw_box←{rx ry rw rh←⍺
+	(rx+1)ry(rw-2)1 draw_rect ⍵:
+	(rx+1)(¯1+ry+rh)(rw-2)1 draw_rect ⍵:
+	rx ry 1 rh draw_rect ⍵:
+	(¯1+rx+rw)ry 1 rh draw_rect ⍵:
+_←0}
+
+draw_text←{font←⍺ ⋄ str pos color←⍵
+	rect←pos,(font text_width str)(text_height font)
+	clipped←check_clip rect
+	clipped=CLIP_ALL:_←0
+	{clipped=CLIP_PART:set_clip get_clip_rect ⋄ 0}⍬:
+	push_command COMMAND_TEXT font pos color str:
+	clipped≠0:set_clip unclipped_rect
+_←0}
+
+draw_icon←{id←⍺ ⋄ rect color←⍵
+	clipped←check_clip rect
+	clipped=CLIP_ALL:_←0
+	{clipped=CLIP_PART:set_clip get_clip_rect ⋄ 0}⍬:
+	push_command COMMAND_ICON rect id color:
+	clipped≠0:set_clip unclipped_rect
+_←0}
+
+⍝ Layout
+
+∇{z}←layout_begin_column
+ z←0
+ layout_next push_layout 0 0
+∇
+
+∇{z}←layout_end_column;a;b;flds;apx;abx;aby;anr;bpx;bbx;bpy;bnr
+ z←0 ⋄ flds←(⊃lyt_pos),lyt_body[0 1],lyt_next_row
+ b←layout_stack[get_layout;] ⋄ layout_stack_idx-←1 ⋄ a←get_layout
+ apx abx aby anr←layout_stack[a;flds]
+ bpx bbx bby bnr←b[flds]
+ layout_stack[a;⊃lyt_pos]⌈←(bpx+bbx)-abx
+ layout_stack[a;lyt_next_row]⌈←(bnr+bby)-aby
+ layout_stack[a;lyt_max]⌈←b[lyt_max]
+∇
+
+layout_row←{⍺←⍬ ⋄ widths←⍺ ⋄ items height←⍵
+	assert MAX_WIDTHS≥≢widths:
+	assert 0 items∨.=≢widths:
+	lyt←get_layout
+	layout_stack[lyt;items↑lyt_widths]←items↑widths
+	layout_stack[lyt;lyt_item_index,lyt_items,1⊃lyt_size]←0 items height
+	layout_stack[lyt;lyt_pos]←layout_stack[lyt;lyt_indent,lyt_next_row]
+_←0}
+
+layout_width←{width←⍵
+	layout_stack[get_layout;⊃lyt_size]←width
+_←0}
+
+layout_height←{height←⍵
+	layout_stack[get_layout;1⊃lyt_size]←height
+_←0}
+
+layout_set_next←{relative←ABSOLUTE RELATIVE[⍺] ⋄ r←⍵
+	layout_stack[get_layout;lyt_next,lyt_next_type]←r,relative
+_←0}
+
+∇z←layout_next;lyt;type;res;msk
+ lyt←get_layout
+ →NEXT_ROW⌿⍨0=type←layout_stack[lyt;lyt_next_type]
+ layout_stack[lyt;lyt_next_type]←0
+ res←layout_stack[lyt;lyt_next]
+ →UPDATE⌿⍨type≠ABSOLUTE ⋄ z←last_rect←res ⋄ →0
+
+NEXT_ROW:
+ →POSITION⌿⍨layout_stack[lyt;lyt_item_index]≠layout_stack[lyt;lyt_items]
+ layout_row layout_stack[lyt;lyt_items,1⊃lyt_size]
+
+POSITION:
+ res←layout_stack[lyt;lyt_pos,lyt_size]
+ →CHK_RES⌿⍨layout_stack[lyt;lyt_items]≤0
+ res[2]←layout_stack[lyt;lyt_widths][layout_stack[lyt;lyt_item_index]]
+
+CHK_RES:
+ res[2 3]←(res[2 3]×~msk)+(msk←res[2 3]=0)×style_size+style_padding×2
+ res[2 3]+←(res[2 3]<0)×(layout_stack[lyt;lyt_body[2 3]]-res[0 1])+1
+
+ layout_stack[lyt;lyt_item_index]+←1
+
+UPDATE:
+ layout_stack[lyt;⊃lyt_pos]+←res[2]+style_padding
+ layout_stack[lyt;lyt_next_row]⌈←res[1]+res[3]+style_spacing
+
+ res[0 1]+←layout_stack[lyt;lyt_body][0 1]
+
+ layout_stack[lyt;lyt_max]⌈←res[0 1]+res[2 3]
+
+ z←last_rect←res
+∇
+
+⍝ Controls
+
+draw_control_frame←{opt←⍺ ⋄ id rect colorid←⍵
+	opt(32bit∧)OPT_NOFRAME:_←0
+	colorid+←2×focus=id ⋄ colorid+←(hover=id)∧focus≠id
+	rect draw_frame colorid
+_←0}
+
+draw_control_text←{⍺←0 ⋄ opt←⍺ ⋄ str rect colorid←⍵
+	pos←0 0
+	tw←style_font text_width str
+	push_clip_rect rect:
+	pos[1]←rect[1]+⌊(rect[3]-text_height style_font)÷2
+	_←{
+		0≠opt(32bit∧)OPT_ALIGNCENTER:pos[0]←rect[0]+⌊(rect[2]-tw)÷2
+		0≠opt(32bit∧)OPT_ALIGNRIGHT:pos[0]←((rect[0]+rect[2])-tw)-style_padding
+		1:pos[0]←rect[0]+style_padding
+	}⍬
+	style_font draw_text str pos(style_colors[colorid;]):
+	pop_clip_rect:
+_←0}
+
+mouse_over←{rect←⍵
+	msk←rect rect_overlaps_vec2 mouse_pos
+	msk∧←get_clip_rect rect_overlaps_vec2 mouse_pos
+	msk∧in_hover_root
+}
+
+update_control←{⍺←0 ⋄ opt←⍺ ⋄ id rect←⍵
+	mouseover←mouse_over rect
+	updated_focus∨←focus=id
+	0≠opt(32bit∧)OPT_NOINTERACT:_←0
+	hover∘←(hover×~msk)+id×msk←mouseover>mouse_down
+	msk←mouse_pressed>mouseover
+	msk∨←(0=mouse_down)∧0=opt(32bit∧)OPT_HOLDFOCUS
+	set_focus⍣(msk∧focus=id)⊢0:
+	_←{hover≠id:0
+		mouse_pressed:set_focus id
+		0=mouseover:hover∘←0
+	0}⍬
+_←0}
+
+text←{txt←⍵ ⋄ font←style_font ⋄ color←style_colors[COLOR_TEXT;]
+	layout_begin_column:
+	¯1 layout_row 1,text_height font:
+	line←txt⊂⍨1,¯1↓txt=⎕UCS 10
+	_←line{
+		r←layout_next
+		⍵≤r[2]:font draw_text ⍺(2↑r)color
+		⎕SIGNAL 16 ⍝ XXX
+		1=+⌿msk←1,¯1↓' '=⍺:{
+			
+		}⍬
+		w←font text_width⊢w←msk⊂⍺
+
+		∇ ∊(~msk)⌿words
+	}¨font∘text_width¨line
+	layout_end_column:
+_←0}
+
+label←{txt←⍵ ⋄ draw_control_text txt layout_next COLOR_TEXT}
+
+button←{⍺←0 OPT_ALIGNCENTER ⋄ icon opt←⍺ ⋄ label←⍵
+	id←get_id (label icon)[label≡'']
+	r←layout_next
+	opt update_control id r:
+	res←RES_SUBMIT×(mouse_pressed=MOUSE_LEFT)∧focus=id
+	opt draw_control_frame id r COLOR_BUTTON:
+	{opt draw_control_text label r COLOR_TEXT}⍣(label≢'')⊢0:
+	{icon draw_icon r(style_colors[COLOR_TEXT;])}⍣(icon≠0)⊢0:
+	1:_←res
+}
+
+checkbox←{
+	XXX
+}
+
+textbox_raw←{⍺←0 ⋄ opt←⍺ ⋄ buf id r←⍵
+	(opt(32bit∨)OPT_HOLDFOCUS)update_control id r:
+	z←{focus≠id:0
+		buf,←text_input
+		buf↓⍨←-msk←0≠key_pressed(32bit∧)KEY_BACKSPACE
+		z←RES_CHANGE×msk∨0≠≢text_input
+		0≠key_pressed(32bit∧)KEY_RETURN:{
+			set_focus 0:
+			z(32bit∨)RES_SUBMIT
+		}⍬
+		z
+	}⍬
+	opt draw_control_frame id r COLOR_BASE:
+	focus≠id:opt draw_control_text buf r COLOR_TEXT
+	color←style_colors[COLOR_TEXT;] ⋄ font←style_font
+	tw←font text_width buf ⋄ th←text_height font
+	ofx←((r[2]-style_padding)-tw)-1
+	txy←(2↑r)+(ofx⌊style_padding)(⌊(r[3]-th)÷2)
+	push_clip_rect r:
+	font draw_text buf txy color:
+	(tw 0 0 0+txy,1 th)draw_rect color:
+	pop_clip_rect:
+	1:_←z buf
+}
+
+textbox←{⍺←0 ⋄ opt←⍺ ⋄ lbl buf←⍵ ⋄ id←get_id lbl ⋄ textbox_raw buf id layout_next}
+
+slider←{
+	XXX
+}
+
+number←{
+	XXX
+}
+
+header←{
+	XXX
+}
+
+begin_treenode←{
+	XXX
+}
+
+end_treenode←{
+	XXX
+}
+
+scrollbar←{
+	XXX
+}
+
+begin_window←{⍺←0 ⋄ title rect←⍵ ⋄ opt←⍺
+	id←get_id title
+	cnt←opt get_container_id id
+	¯1=cnt:0 ⋄ containers[cnt;cnt_open]=0:0
+	id_stack[id_stack_idx]←id ⋄ id_stack_idx+←1
+
+	msk←0=containers[cnt;cnt_rect[2]]
+	containers[cnt;cnt_rect]{(⍺×~msk)+msk×⍵}←rect
+	rect←body←containers[cnt;cnt_rect]
+	begin_root_container cnt:
+
+	_←{0≠opt(32bit∧)OPT_NOFRAME:0
+		rect draw_frame COLOR_WINDOWBG
+	}⍬
+	
+	_←{0≠opt(32bit∧)OPT_NOTITLE:0
+		tr←rect
+		tr[3]←style_title_height
+		tr draw_frame COLOR_TITLEBG:
+
+		id←get_id '!title'
+		opt update_control id tr:
+		opt draw_control_text title tr COLOR_TITLETEXT:
+		containers[cnt;cnt_rect[0 1]]+←mouse_delta×(id=focus)∧mouse_down=MOUSE_LEFT
+		body[1 3]+←1 ¯1×tr[3]
+
+		{0≠opt(32bit∧)OPT_NOCLOSE:0
+			id←get_id '!close'
+			r←((tr[0]+tr[2])-tr[3]),tr[1 3 3]
+			tr[2]-←r[2]
+			ICON_CLOSE draw_icon r(style_colors[COLOR_TITLETEXT;]):
+			opt update_control id r:
+			containers[cnt;cnt_open]×←(mouse_pressed=MOUSE_LEFT)⍲id=focus
+		0}⍬
+	0}⍬
+
+	opt push_container_body cnt body:
+
+	_←{0≠opt(32bit∧)OPT_NORESIZE:0
+		sz←style_title_height
+		id←get_id '!resize'
+		r←((rect[0]+rect[2])-sz)((rect[1]+rect[3])-sz) sz sz
+		opt update_control id r:
+		msk←(id=focus)∧mouse_down=MOUSE_LEFT
+		rect←containers[cnt;cnt_rect]
+		containers[cnt;cnt_rect][2 3]←(rect[2 3]×~msk)+msk×96 64⌈rect[2 3]+mouse_delta
+	0}⍬
+
+	_←{0=opt(32bit∧)OPT_AUTOSIZE:0
+		r←layout_stack[get_layout;lyt_body]
+		rect←containers[cnt;cnt_rect]
+		csz←containers[cnt;cnt_content_size]
+		containers[cnt;cnt_rect][2 3]←csz+rect[2 3]-r[2 3]
+	0}⍬
+
+	containers[cnt;cnt_open]×←~(0≠opt(32bit∧)OPT_POPUP)∧mouse_pressed∧hover_root≠cnt
+
+	push_clip_rect containers[cnt;cnt_body]:
+	RES_ACTIVE
+}
+
+∇{z}←end_window
+ z←0
+ pop_clip_rect
+ end_root_container
+∇
+
+open_popup←{
+	XXX
+}
+
+begin_popup←{
+	XXX
+}
+
+end_popup←{
+	XXX
+}
+
+begin_panel←{
+	XXX
+}
+
+end_panel←{
+	XXX
+}
+
+⍝ Internal Functions
+
+push_layout←{body←⍺ ⋄ scroll←⍵
+	layout_stack[layout_stack_idx;]←0
+	layout_stack[layout_stack_idx;lyt_body]←body-scroll,0 0
+	layout_stack[layout_stack_idx;lyt_max]←-2*6 6
+	layout_stack_idx+←1
+	0 layout_row 1 0
+}
+
+∇z←get_layout
+ z←layout_stack_idx-1
+∇
+
+∇{z}←pop_container;cnt;lyt
+ z←0 ⋄ cnt←get_current_container ⋄ lyt←get_layout
+ containers[cnt;cnt_content_size]←-⌿layout_stack[lyt;lyt_max⍪⍉⍪lyt_body[0 1]]
+ container_stack_idx-←1 ⋄ layout_stack_idx-←1 ⋄ pop_id
+∇
+
+get_container_id←{⍺←0 ⋄ id←⍵ ⋄ opt←⍺
+	idx←container_pool pool_get id
+	idx≥0:idx⊣{
+		containers[idx;cnt_open]≥opt(32bit∧)OPT_CLOSED:{
+			pool_update_container idx
+		}⍬
+	}⍬
+	opt(32bit∧)OPT_CLOSED:¯1
+	idx←pool_init_container id
+	containers[idx;]←16↑¯1 ¯1
+	containers[idx;cnt_open]←1
+	bring_to_front idx:
+	idx
+}
+
+push_jump←{push_command COMMAND_JUMP ⍵}
+
+number_textbox←{
+	XXX
+}
+
+scrollbars←{cnt←⍺ ⋄ body←⍵
+	⍵ ⍝ XXX
+}
+
+push_container_body←{⍺←0 ⋄ opt←⍺ ⋄ cnt body←⍵
+	body←cnt scrollbars⍣(0=opt(32bit∧)OPT_NOSCROLL)⊢body
+	(body expand_rect -style_padding)push_layout containers[cnt;cnt_scroll]:
+	containers[cnt;cnt_body]←body
+_←0}
+
+begin_root_container←{cnt←⍵
+	container_stack[container_stack_idx]←cnt ⋄ container_stack_idx+←1
+	root_list[root_list_idx]←cnt ⋄ root_list_idx+←1
+	push_jump ¯1:
+	containers[cnt;cnt_head]←command_list_idx-1
+	_←{
+		~containers[cnt;cnt_rect] rect_overlaps_vec2 mouse_pos:0
+		¯1=next_hover_root:next_hover_root∘←cnt
+		containers[cnt;cnt_zidx]≤containers[next_hover_root;cnt_zidx]:0
+		1:next_hover_root∘←cnt
+	}⍬
+	clip_stack[clip_stack_idx;]←unclipped_rect ⋄ clip_stack_idx+←1
+_←0}
+
+
+∇{z}←end_root_container;cnt
+ z←0 ⋄ cnt←get_current_container
+ push_jump ¯1
+ containers[cnt;cnt_tail]←command_list_idx-1
+ (containers[cnt;cnt_head]⊃command_list)[jump_dst]←command_list_idx
+ pop_clip_rect
+ pop_container
+∇
+
+∇z←in_hover_root;stk
+ stk←⌽container_stack_idx↑container_stack
+ stk↑⍨←(≢stk)⌊1+1⍳⍨0≠containers[stk;cnt_head]
+ z←hover_root∊stk
+∇
+
+⍝ Helpful Values
+
+unclipped_rect←0 0 16777216 16777216
+
+⍝ Utilities 
+
+assert←{⍺←'Assertion Failure' ⋄ 0∊⍵:⍺ ⎕SIGNAL 8 ⋄ shy←0}
+U←{⍺←⊢ ⋄ ⍵⍵⍣¯1⊢⍺(⍺⍺⍥⍵⍵)⍵}
+bit←{⍺←⊢ ⋄ ⍺(⍵⍵U((⍺⍺⍴2)∘⊤))⍵}
+expand_rect←{⍺+⍵×¯1 ¯1 2 2}
+intersect_rects←{r1x r1y r1w r1h←⍺ ⋄ r2x r2y r2w r2h←⍵
+	x1←r1x⌈r2x ⋄ y1←r1y⌈r2y
+	x2←(r1x+r1w)⌊r2x+r2w ⋄ y2←(r1y+r1h)⌊r2y+r2h
+	x2←x1⌈x2 ⋄ y2←y1⌈y2
+	x1 y1 (x2-x1)(y2-y1)
+}
+rect_overlaps_vec2←{rx ry rw rh←⍺ ⋄ px py←⍵
+	(px≥rx)∧(px<rx+rw)∧(py≥ry)∧py<ry+rh
+}
+HASH_INITIAL←2166136261
+hash←{4294967296|(16777619×32bit≠)⌿⍺,⍨83⎕DR∊⍵}
+
+⍝ Demo Program and Tests
+
+∇demo;open;uname;pswd;cnt;lw;bw;mainw;mainh
+ init
+
+ uname←pswd←''
+
+ rl←0⎕FIX 'raylib.apln',⍨rl_dir←(⊃1⎕NPARTS''),'raylibAPL/link/'
+ rl.⎕IO←1
+
+ rl.Init rl_dir
+ rl.InitWindow 1600 1200 ''
+ rl.SetWindowState(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
+
+ style_font←⊃rl.LoadFontEx 'resources/Apl385.ttf' font_size ⎕AVU (≢⎕AVU)
+ icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
+
+ lw←(2×style_padding)+style_font text_width 'Username:'
+ bw←(2×style_padding)+style_font text_width 'Login'
+ mainh←style_title_height+3×(4×style_spacing)+1⊃style_size
+ mainw←3×lw
+
+MAIN:
+ →EXIT⌿⍨rl.WindowShouldClose⍬
+
+ process_input
+
+ begin
+  →WIN1_DONE⌿⍨0=begin_window 'MicroUI APL Demo' (0 0 mainw mainh)
+
+   lw ¯1 layout_row 2 0
+   label 'Username:'
+   (textbox 'user' uname){0≠RES_CHANGE(32bit∧)⊃⍺:uname∘←1⊃⍺}⍬
+
+   lw ¯1 layout_row 2 0
+   label 'Password:'
+   (textbox 'pswd'('*'⍴⍨≢pswd)){0≠RES_CHANGE(32bit∧)⊃⍺:pswd∘←(≢x)↑pswd,(pswd⌊⍥≢x)↓x←1⊃⍺}⍬
+
+   (-bw) ¯1 layout_row 2 0
+   {}layout_next ⋄ button 'Login'
+  end_window
+ WIN1_DONE:
+
+   →WIN2_DONE⌿⍨0=begin_window 'Window 2' (500 500 100 100)
+   end_window
+  WIN2_DONE:
+
+ end
+ 
+ render
+
+ →MAIN
+
+EXIT:
+ rl.UnloadFont style_font ⋄ style_font←0
+ rl.UnloadFont icon_font ⋄ icon_font←0
+ rl.CloseWindow⍬
+∇
+
+
+:EndNamespace
