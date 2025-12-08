@@ -463,7 +463,7 @@ button←{⍺←0 OPT_ALIGNCENTER ⋄ icon opt←⍺ ⋄ label←⍵
 }
 
 checkbox←{
-	XXX
+	
 }
 
 textbox_raw←{⍺←0 ⋄ opt←⍺ ⋄ buf id r←⍵
@@ -718,7 +718,7 @@ hash←{4294967296|(16777619×32bit≠)⌿⍺,⍨83⎕DR∊⍵}
  rl.⎕IO←1
 
  rl.Init rl_dir
- rl.InitWindow 1600 1200 ''
+ rl.InitWindow 800 600 ''
  rl.SetWindowState(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
 
  style_font←⊃rl.LoadFontEx 'resources/Apl385.ttf' font_size ⎕AVU (≢⎕AVU)
