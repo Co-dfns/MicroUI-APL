@@ -7,6 +7,7 @@
 CLIP_PART	CLIP_ALL 									← 1 2
 
 COMMAND_JUMP	COMMAND_CLIP	COMMAND_RECT	COMMAND_TEXT	COMMAND_ICON		← 1+⍳5
+COMMAND_IMAGE										← 6+⍳1
 
 COLOR_TEXT		COLOR_BORDER		COLOR_WINDOWBG	COLOR_TITLEBG		←   ⍳4
 COLOR_TITLETEXT		COLOR_PANELBG		COLOR_BUTTON	COLOR_BUTTONHOVER	←  4+⍳4
@@ -95,13 +96,14 @@ _←0}
  PROC_CMD:
   →END⌿⍨¯1=i←next_command i
   cmd←i⊃command_list
-  →(COMMAND_RECT COMMAND_CLIP COMMAND_TEXT COMMAND_ICON=⊃cmd)⌿RECT CLIP TEXT ICON
-  'UNKNOWN COMMAND'⎕SIGNAL 99
 
+  →BAD BAD CLIP RECT TEXT ICON IMAGE[⊃cmd]
+  BAD:'UNKNOWN COMMAND'⎕SIGNAL 99
   RECT:rl.DrawRectangle (1⊃cmd),cmd[2] ⋄ →PROC_CMD
   TEXT:rl.DrawTextEx cmd[1 4 2],font_size,font_spacing,cmd[3] ⋄ →PROC_CMD
   CLIP:rl.BeginScissorMode 1⊃cmd ⋄ →PROC_CMD
   ICON:rl.DrawTextCodepoint icon_font(icons[2⊃cmd])(2↑1⊃cmd)(1 3⊃cmd)(3⊃cmd) ⋄ →PROC_CMD
+  IMAGE:rl.DrawTexture (1↓cmd),⊂4⍴255 ⋄ →PROC_CMD
 
 END:
  rl.EndDrawing⍬
@@ -318,6 +320,10 @@ draw_icon←{id←⍺ ⋄ rect color←⍵
 	clipped≠0:set_clip unclipped_rect
 _←0}
 
+draw_image←{img←⍺ ⋄ pos←⍵
+	push_command COMMAND_IMAGE,(⊂img),pos
+}
+
 ⍝ Layout
 
 ∇{z}←layout_begin_column
@@ -450,6 +456,8 @@ text←{txt←⍵ ⋄ font←style_font ⋄ color←style_colors[COLOR_TEXT;]
 _←0}
 
 label←{txt←⍵ ⋄ draw_control_text txt layout_next COLOR_TEXT}
+
+image←{img←⍵ ⋄ ⍵ draw_image 2↑layout_next}
 
 button←{⍺←0 OPT_ALIGNCENTER ⋄ icon opt←⍺ ⋄ label←⍵
 	id←get_id (label icon)[label≡'']
@@ -719,7 +727,7 @@ hash←{4294967296|(16777619×32bit≠)⌿⍺,⍨83⎕DR∊⍵}
 
  rl.Init rl_dir
  rl.InitWindow 800 600 ''
- rl.SetWindowState(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
+ rl.SetWindowState rl.ConfigFlags.FLAG_WINDOW_RESIZABLE
 
  style_font←⊃rl.LoadFontEx 'resources/Apl385.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
