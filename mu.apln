@@ -643,7 +643,7 @@ _←0}
 push_layout←{body←⍺ ⋄ scroll←⍵
 	layout_stack[layout_stack_idx;]←0
 	layout_stack[layout_stack_idx;lyt_body]←body-scroll,0 0
-	layout_stack[layout_stack_idx;lyt_max]←-2*6 6
+	layout_stack[layout_stack_idx;lyt_max]←¯16777216 ¯16777216
 	layout_stack_idx+←1
 	0 layout_row 1 0
 }
