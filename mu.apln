@@ -624,13 +624,19 @@ end_popup←{
 	XXX
 }
 
-begin_panel←{
-	XXX
-}
+begin_panel←{⍺←0 ⋄ opt←⍺ ⋄ name←⍵
+	push_id name:
+	cnt←opt get_container last_id
+	containers[cnt;cnt_rect]←rect←layout_next
+	_←rect draw_frame⍣(0=opt(32bit∧)OPT_NOFRAME)⊢COLOR_PANELBG
+	container_stack[container_stack_idx]←cnt ⋄ container_stack_idx+←1
+	opt push_container_body cnt rect:
+	push_clip_rect containers[cnt;cnt_body]:
+_←0}
 
-end_panel←{
-	XXX
-}
+∇{z}←end_panel
+ z←0 ⋄ pop_clip_rect ⋄ pop_container
+∇
 
 ⍝ Internal Functions
 
