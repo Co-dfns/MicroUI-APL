@@ -440,18 +440,15 @@ _←0}
 text←{txt←⍵ ⋄ font←style_font ⋄ color←style_colors[COLOR_TEXT;]
 	layout_begin_column:
 	¯1 layout_row 1,text_height font:
-	line←txt⊂⍨1,¯1↓txt=⎕UCS 10
-	_←line{
-		r←layout_next
-		⍵≤r[2]:font draw_text ⍺(2↑r)color
-		⎕SIGNAL 16 ⍝ XXX
-		1=+⌿msk←1,¯1↓' '=⍺:{
-			
-		}⍬
-		w←font text_width⊢w←msk⊂⍺
-
-		∇ ∊(~msk)⌿words
-	}¨font∘text_width¨line
+	txt≡'':layout_end_column
+	_←{prv cnt wid←⍵ ⋄ r←⎕←layout_next
+		1=(⊃cnt)-prv:(⊃cnt)(1↓cnt)((1↓wid)-⊃wid)⊣font draw_text txt[prv](2↑r)color
+		last←¯1+1⍳⍨msk←∨⍀(r[2]<wid)∨txt[cnt-1]=⎕UCS 10
+		rng←prv+⍳cnt[last⌈0]-prv
+		last<0:prv((1+rng),1↓cnt)((+⍀font∘text_width¨txt[rng]),1↓wid)
+		font draw_text txt[rng](2↑r)color:
+		cnt[last](msk⌿cnt)((msk⌿wid)-wid[last])
+	}⍣{0=≢1⊃⍺}0(+⍀≢¨w)(+⍀font∘text_width¨w←txt⊂⍨(≢txt)↑1,¯1↓txt∊' ',⎕UCS 10)
 	layout_end_column:
 _←0}
 
