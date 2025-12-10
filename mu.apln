@@ -467,8 +467,15 @@ button←{⍺←0 OPT_ALIGNCENTER ⋄ icon opt←⍺ ⋄ label←⍵
 	1:_←res
 }
 
-checkbox←{
-	
+checkbox←{id←⍺ ⋄ label state←⍵ ⋄ res←0
+	id←get_id id ⋄ r←layout_next ⋄ box←r[0 1 3 3]
+	update_control id r:
+	res+←{(mouse_pressed=MOUSE_LEFT)⍲focus=id:0 ⋄ state∘←~state ⋄ RES_CHANGE}⍬
+	draw_control_frame id box COLOR_BASE:
+	_←ICON_CHECK draw_icon⍣state⊢box(style_colors[COLOR_TEXT;])
+	r[0 2]+←1 ¯1×box[2]
+	draw_control_text label r COLOR_TEXT:
+	res state
 }
 
 textbox_raw←{⍺←0 ⋄ opt←⍺ ⋄ buf id r←⍵
