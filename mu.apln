@@ -743,25 +743,20 @@ hash←{4294967296|(16777619×32bit≠)⌿⍺,⍨83⎕DR∊⍵}
 
 ⍝ Demo Program and Tests
 
-∇demo;open;uname;pswd;cnt;lw;bw;mainw;mainh
+∇demo;panel;logbuf;submitted;logbuf_updated;buf
  init
 
- uname←pswd←''
+ logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←''
 
  rl←0⎕FIX 'raylib.apln',⍨rl_dir←(⊃1⎕NPARTS''),'raylibAPL/link/'
  rl.⎕IO←1
 
  rl.Init rl_dir
- rl.InitWindow 800 600 ''
+ rl.InitWindow 800 600 'MicroUI APL Demo'
  rl.SetWindowState rl.ConfigFlags.FLAG_WINDOW_RESIZABLE
 
  style_font←⊃rl.LoadFontEx 'resources/Apl385.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
-
- lw←(2×style_padding)+style_font text_width 'Username:'
- bw←(2×style_padding)+style_font text_width 'Login'
- mainh←style_title_height+3×(4×style_spacing)+1⊃style_size
- mainw←3×lw
 
 MAIN:
  →EXIT⌿⍨rl.WindowShouldClose⍬
@@ -769,30 +764,30 @@ MAIN:
  process_input
 
  begin
-  →WIN1_DONE⌿⍨0=begin_window 'MicroUI APL Demo' (0 0 mainw mainh)
-
-   lw ¯1 layout_row 2 0
-   label 'Username:'
-   (textbox 'user' uname){0≠RES_CHANGE(32bit∧)⊃⍺:uname∘←1⊃⍺}⍬
-
-   lw ¯1 layout_row 2 0
-   label 'Password:'
-   (textbox 'pswd'('*'⍴⍨≢pswd)){0≠RES_CHANGE(32bit∧)⊃⍺:pswd∘←(≢x)↑pswd,(pswd⌊⍥≢x)↓x←1⊃⍺}⍬
-
-   (-bw) ¯1 layout_row 2 0
-   {}layout_next ⋄ button 'Login'
+  →PANEL_END⌿⍨0=begin_window 'Log Window' (350 40 300 200)
+   ¯1 layout_row 1 ¯40
+   begin_panel 'Log Output'
+    panel←get_current_container
+    ¯1 layout_row 1 ¯1
+    text logbuf
+   end_panel
+   →LOGINPUT⌿⍨~logbuf_updated
+    containers[panel;cnt_scroll[1]]←containers[panel;cnt_content_size[1]]
+    logbuf_updated←0
+  LOGINPUT:
+   submitted←0
+   ¯90 ¯1 layout_row 2 0
+   →LOGBUTTON⌿⍨0=RES_SUBMIT(32bit∧)⊃res buf←textbox 'loginput' buf
+    set_focus last_id
+    submitted←1
+  LOGBUTTON:
+   submitted∨←0≠button 'Submit'
+   logbuf,←submitted⌿buf ⋄ logbuf_updated∨←submitted
+   buf←submitted⊃buf ''
   end_window
- WIN1_DONE:
+ PANEL_END:
 
-   →WIN2_DONE⌿⍨0=begin_window 'Window 2' (500 500 100 100)
-   end_window
-  WIN2_DONE:
-
- end
- 
- render
-
- →MAIN
+ end ⋄ render ⋄ →MAIN
 
 EXIT:
  rl.UnloadFont style_font ⋄ style_font←0
