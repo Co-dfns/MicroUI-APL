@@ -505,8 +505,24 @@ textbox_raw←{⍺←0 ⋄ opt←⍺ ⋄ buf id r←⍵
 
 textbox←{⍺←0 ⋄ opt←⍺ ⋄ lbl buf←⍵ ⋄ id←get_id lbl ⋄ textbox_raw buf id layout_next}
 
-slider←{
-	XXX
+slider←{⍺←0 ⋄ opt←⍺ ⋄ id value low high step←⍵ ⋄ res←0 ⋄ id←get_id id
+	last←value
+	base←layout_next
+	0≠number_textbox value base id:res
+	opt update_control id base:
+	value←{~(focus=id)∧MOUSE_LEFT=mouse_down(32bit∨)mouse_pressed:value
+		value←low+((mouse_pos[0]-base[0])×high-low)÷base[2]
+		0=step:value
+		step×⌊(value+step÷2)÷step
+	}⍬
+	value←low high clamp value
+	res(32bit∨)←RES_CHANGE×last≠value
+	opt draw_control_frame id base COLOR_BASE:
+	x←⌊((value-low)×base[2]-style_thumb_size)÷high-low
+	thumb←base+x 0 style_thumb_size 0
+	opt draw_control_frame id thumb COLOR_BUTTON:
+	opt draw_control_text (⍕value)base COLOR_TEXT:
+	res value
 }
 
 number←{
