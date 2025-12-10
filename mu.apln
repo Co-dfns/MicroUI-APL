@@ -345,7 +345,7 @@ layout_row←{⍺←⍬ ⋄ widths←⍺ ⋄ items height←⍵
 	assert MAX_WIDTHS≥≢widths:
 	assert 0 items∨.=≢widths:
 	lyt←get_layout
-	layout_stack[lyt;items↑lyt_widths]←items↑widths
+	_←{widths≡⍬:0 ⋄ layout_stack[lyt;items↑lyt_widths]←items↑widths}⍬
 	layout_stack[lyt;lyt_item_index,lyt_items,1⊃lyt_size]←0 items height
 	layout_stack[lyt;lyt_pos]←layout_stack[lyt;lyt_indent,lyt_next_row]
 _←0}
