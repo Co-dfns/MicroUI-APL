@@ -491,7 +491,7 @@ textbox_raw←{⍺←0 ⋄ opt←⍺ ⋄ buf id r←⍵
 		z
 	}⍬
 	opt draw_control_frame id r COLOR_BASE:
-	focus≠id:opt draw_control_text buf r COLOR_TEXT
+	focus≠id:z buf⊣opt draw_control_text buf r COLOR_TEXT
 	color←style_colors[COLOR_TEXT;] ⋄ font←style_font
 	tw←font text_width buf ⋄ th←text_height font
 	ofx←((r[2]-style_padding)-tw)-1
