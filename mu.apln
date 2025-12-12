@@ -541,10 +541,6 @@ end_treenode←{
 	XXX
 }
 
-scrollbar←{
-	XXX
-}
-
 begin_window←{⍺←0 ⋄ title rect←⍵ ⋄ opt←⍺
 	id←get_id title
 	cnt←opt get_container_id id
@@ -679,8 +675,30 @@ number_textbox←{
 	XXX
 }
 
+scrollbar←{cnt b cs (x y w h)←⍵
+	maxscroll←cs[y]-b[h]
+	(maxscroll>0)⍲b[h]>0:containers[cnt;cnt_scroll[y]]←0
+	id←get_id '!scrollbar','xy'[y]
+	base←b ⋄ base[x]←b[x]+b[w] ⋄ base[w]←style_scrollbar_size
+	update_control id base:
+	containers[cnt;cnt_scroll[y]]+←((focus=id)∧mouse_down=MOUSE_LEFT)×⌊(mouse_delta[y]×cs[y])÷base[h]
+	containers[cnt;cnt_scroll[y]]←maxscroll⌊0⌈containers[cnt;cnt_scroll[y]]
+	base draw_frame COLOR_SCROLLBASE:
+	thumb←base
+	thumb[h]←style_thumb_size⌈⌊(base[h]×b[h])÷cs[y]
+	thumb[y]+←⌊(containers[cnt;cnt_scroll[y]]×base[h]-thumb[h])÷maxscroll
+	thumb draw_frame COLOR_SCROLLTHUMB:
+	mouse_over b:_←0⊣scroll_target←cnt
+_←0}
+
 scrollbars←{cnt←⍺ ⋄ body←⍵
-	⍵ ⍝ XXX
+	cs←containers[cnt;cnt_content_size]+2×style_padding
+	push_clip_rect body:
+	body[2 3]-←(cs>containers[cnt;cnt_body[2 3]])×style_scrollbar_size
+	scrollbar cnt body cs (0 1 2 3):
+	scrollbar cnt body cs (1 0 3 2):
+	pop_clip_rect:
+	body
 }
 
 push_container_body←{⍺←0 ⋄ opt←⍺ ⋄ cnt body←⍵
@@ -782,9 +800,12 @@ MAIN:
     submitted←1
   LOGBUTTON:
    submitted∨←0≠button 'Submit'
-   logbuf,←submitted⌿buf ⋄ logbuf_updated∨←submitted
+   →WINDOW_END⌿⍨~submitted
+   logbuf,←((logbuf≢'')⌿⎕UCS 10),buf ⋄ logbuf_updated←submitted
    buf←submitted⊃buf ''
+  WINDOW_END:
   end_window
+
  PANEL_END:
 
  end ⋄ render ⋄ →MAIN
