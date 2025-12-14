@@ -441,9 +441,9 @@ text←{txt←⍵ ⋄ font←style_font ⋄ color←style_colors[COLOR_TEXT;]
 	layout_begin_column:
 	¯1 layout_row 1,text_height font:
 	txt≡'':layout_end_column
-	_←{prv cnt wid←⍵ ⋄ r←⎕←layout_next
+	_←{prv cnt wid←⍵ ⋄ r←layout_next
 		1=(⊃cnt)-prv:(⊃cnt)(1↓cnt)((1↓wid)-⊃wid)⊣font draw_text txt[prv](2↑r)color
-		last←¯1+1⍳⍨msk←∨⍀(r[2]<wid)∨txt[cnt-1]=⎕UCS 10
+		last←¯1+1⍳⍨msk←∨⍀(r[2]<wid)∨¯1⌽txt[cnt-1]=⎕UCS 10
 		rng←prv+⍳cnt[last⌈0]-prv
 		last<0:prv((1+rng),1↓cnt)((+⍀font∘text_width¨txt[rng]),1↓wid)
 		font draw_text txt[rng](2↑r)color:
