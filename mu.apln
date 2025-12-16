@@ -694,7 +694,7 @@ _←0}
 scrollbars←{cnt←⍺ ⋄ body←⍵
 	cs←containers[cnt;cnt_content_size]+2×style_padding
 	push_clip_rect body:
-	body[2 3]-←(cs>containers[cnt;cnt_body[2 3]])×style_scrollbar_size
+	body[3 2]-←(cs>containers[cnt;cnt_body[2 3]])×style_scrollbar_size
 	scrollbar cnt body cs (0 1 2 3):
 	scrollbar cnt body cs (1 0 3 2):
 	pop_clip_rect:
