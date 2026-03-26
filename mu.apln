@@ -82,11 +82,11 @@ jump_dst←1
 ∇{Z}←init
 ⍝ Default Style
  style_font		←0
- style_size		←128 24
+ style_size		←68 10
  style_padding		←5
  style_spacing		←4
  style_indent		←24
- style_title_height	←32
+ style_title_height	←24
  style_scrollbar_size	←12
  style_thumb_size	←8
  
@@ -161,7 +161,7 @@ jump_dst←1
 ⍝ Default Callbacks                                                            ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
-font_size	←24
+font_size	←16
 font_spacing	←0
 icons		←⎕UCS ' '
 
@@ -792,7 +792,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  rl.InitWindow 800 600 'MicroUI APL Demo'
  rl.SetWindowState rl.ConfigFlags.FLAG_WINDOW_RESIZABLE
 
- style_font←⊃rl.LoadFontEx 'resources/Apl385.ttf' font_size ⎕AVU (≢⎕AVU)
+ style_font←⊃rl.LoadFontEx 'resources/Inter-Medium.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
 
 MAIN:→EXIT⌿⍨rl.WindowShouldClose⍬ ⋄ →CONT
@@ -809,7 +809,7 @@ LOG_WIN:res←begin_window 'Log Window' (350 40 300 200)
 LOG_WIN_CLOSED:
  end ⋄ render ⋄ →MAIN
 LOG_WIN_OPEN:
- ¯1 layout_row 1 ¯40
+ ¯1 layout_row 1 ¯25
  begin_panel 'Log Output'
  panel←get_current_container
  ¯1 layout_row 1 ¯1
