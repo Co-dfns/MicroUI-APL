@@ -419,6 +419,7 @@ push_jump←{push_command COMMAND_JUMP ⍵}
 set_clip←{push_command COMMAND_CLIP ⍵}
 
 draw_rect←{rx ry rw rh←rect←⍺ intersect_rects get_clip_rect
+	assert rect=⌊rect:
 	(rw>0)∧rh>0:push_command COMMAND_RECT rect ⍵
 _←0}
 
@@ -630,29 +631,34 @@ textbox_raw←{⍺←MT_OPT ⋄ opt←⍺ ⋄ buf id r←⍵ ⋄ res←MT_RES
 	1:_←res buf
 }
 
-number_textbox←{
-	0 0 ⍝ XXX
+number_textbox←{id←⍺ ⋄ value r←⍵
+	t←(1 0 0≡mouse_pressed)∧key_down[KEY_SHIFT]∧hover=id
+	number_edit←t⊃number_edit id
+	number_edit_buf←t⊃number_edit_buf (⍕value)
+	number_edit≠id:0 value
+	res←textbox_raw number_edit_buf id r
+	res[RES_SUBMIT]⍱focus≠id:1 value
+	value←1⊃⎕VFI number_edit_buf
+	number_edit←0
+	0
 }
 
 textbox←{⍺←MT_OPT ⋄ opt←⍺ ⋄ lbl buf←⍵ ⋄ id←get_id lbl ⋄ textbox_raw buf id layout_next}
 
-⍝ XXX
-slider←{⍺←MT_OPT ⋄ opt←⍺ ⋄ id value low high step←⍵ ⋄ res←MT_RES
+slider←{⍺←MT_OPT ⋄ opt←⍺ ⋄ id value low high step spec←⍵ ⋄ res←MT_RES
 	id←get_id id ⋄ last←value ⋄ base←layout_next
-	0≠⊃_ value←number_textbox value base id:res value
+	⊃_ value←id number_textbox value base:res value
 	opt update_control id base:
-	value←{~(focus=id)∧MOUSE_LEFT=mouse_down(32bit∨)mouse_pressed:value
-		value←low+((mouse_pos[0]-base[0])×high-low)÷base[2]
-		0=step:value
-		step×⌊(value+step÷2)÷step
-	}⍬
-	value←low high clamp value
-	res(32bit∨)←RES_CHANGE×last≠value
+	f←(focus=id)∧1 0 0≡mouse_down∨mouse_pressed
+	value←{low+((mouse_pos[0]-base[0])×high-low)÷base[2]}⍣f⊢value
+	value←{step×⌊(value+step÷2)÷step}⍣(f∧0≠step)⊢value
+	value←low⌈high⌊value
+	res[RES_CHANGE]∨←last≠value
 	opt draw_control_frame_base id base:
 	x←⌊((value-low)×base[2]-style_thumb_size)÷high-low
-	thumb←base+x 0 style_thumb_size 0
+	thumb←x 0 style_thumb_size 0+base×1 1 0 1
 	opt draw_control_frame_button id thumb:
-	opt draw_control_text (⍕value)base color_text:
+	opt draw_control_text (spec⍕value)base color_text:
 	res value
 }
 
@@ -780,7 +786,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt
  init
 
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←''
@@ -797,12 +803,122 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 MAIN:→EXIT⌿⍨rl.WindowShouldClose⍬ ⋄ →CONT
 CONT:
- process_input ⋄ begin ⋄ →LOG_WIN
+ process_input ⋄ begin ⋄ →STYLE_WIN
 EXIT:
  rl.UnloadFont style_font ⋄ style_font←0
  rl.UnloadFont icon_font ⋄ icon_font←0
  rl.CloseWindow⍬
  →0
+
+STYLE_WIN:res←begin_window 'Style Editor' (350 250 300 240)
+ →STYLE_WIN_CLOSED STYLE_WIN_OPEN[RES_ACTIVE⊃res]
+STYLE_WIN_CLOSED:
+ →LOG_WIN
+STYLE_WIN_OPEN:
+ sw←⌊containers[get_current_container;cnt_body][2]×0.14
+ 80 sw sw sw sw ¯1 layout_row 6 0
+ opt←1@OPT_ALIGNCENTER⊢MT_OPT
+
+ label 'text:'
+ color_text[0]←⌊1⊃opt slider 'text_r'(color_text[0])0 255 0(3 0)
+ color_text[1]←⌊1⊃opt slider 'text_g'(color_text[1])0 255 0(3 0)
+ color_text[2]←⌊1⊃opt slider 'text_b'(color_text[2])0 255 0(3 0)
+ color_text[3]←⌊1⊃opt slider 'text_a'(color_text[3])0 255 0(3 0)
+ layout_next draw_rect color_text
+ 
+ label 'border:'
+ color_border[0]←⌊1⊃opt slider 'border_r'(color_border[0])0 255 0(3 0)
+ color_border[1]←⌊1⊃opt slider 'border_g'(color_border[1])0 255 0(3 0)
+ color_border[2]←⌊1⊃opt slider 'border_b'(color_border[2])0 255 0(3 0)
+ color_border[3]←⌊1⊃opt slider 'border_a'(color_border[3])0 255 0(3 0)
+ layout_next draw_rect color_border
+ 
+ label 'windowbg:'
+ color_windowbg[0]←⌊1⊃opt slider 'windowbg_r'(color_windowbg[0])0 255 0(3 0)
+ color_windowbg[1]←⌊1⊃opt slider 'windowbg_g'(color_windowbg[1])0 255 0(3 0)
+ color_windowbg[2]←⌊1⊃opt slider 'windowbg_b'(color_windowbg[2])0 255 0(3 0)
+ color_windowbg[3]←⌊1⊃opt slider 'windowbg_a'(color_windowbg[3])0 255 0(3 0)
+ layout_next draw_rect color_windowbg
+ 
+ label 'titlebg:'
+ color_titlebg[0]←⌊1⊃opt slider 'titlebg_r'(color_titlebg[0])0 255 0(3 0)
+ color_titlebg[1]←⌊1⊃opt slider 'titlebg_g'(color_titlebg[1])0 255 0(3 0)
+ color_titlebg[2]←⌊1⊃opt slider 'titlebg_b'(color_titlebg[2])0 255 0(3 0)
+ color_titlebg[3]←⌊1⊃opt slider 'titlebg_a'(color_titlebg[3])0 255 0(3 0)
+ layout_next draw_rect color_titlebg
+ 
+ label 'titletext:'
+ color_titletext[0]←⌊1⊃opt slider 'titletext_r'(color_titletext[0])0 255 0(3 0)
+ color_titletext[1]←⌊1⊃opt slider 'titletext_g'(color_titletext[1])0 255 0(3 0)
+ color_titletext[2]←⌊1⊃opt slider 'titletext_b'(color_titletext[2])0 255 0(3 0)
+ color_titletext[3]←⌊1⊃opt slider 'titletext_a'(color_titletext[3])0 255 0(3 0)
+ layout_next draw_rect color_titletext
+ 
+ label 'panelbg:'
+ color_panelbg[0]←⌊1⊃opt slider 'panelbg_r'(color_panelbg[0])0 255 0(3 0)
+ color_panelbg[1]←⌊1⊃opt slider 'panelbg_g'(color_panelbg[1])0 255 0(3 0)
+ color_panelbg[2]←⌊1⊃opt slider 'panelbg_b'(color_panelbg[2])0 255 0(3 0)
+ color_panelbg[3]←⌊1⊃opt slider 'panelbg_a'(color_panelbg[3])0 255 0(3 0)
+ layout_next draw_rect color_panelbg
+ 
+ label 'button:'
+ color_button[0]←⌊1⊃opt slider 'button_r'(color_button[0])0 255 0(3 0)
+ color_button[1]←⌊1⊃opt slider 'button_g'(color_button[1])0 255 0(3 0)
+ color_button[2]←⌊1⊃opt slider 'button_b'(color_button[2])0 255 0(3 0)
+ color_button[3]←⌊1⊃opt slider 'button_a'(color_button[3])0 255 0(3 0)
+ layout_next draw_rect color_button
+ 
+ label 'buttonhover:'
+ color_buttonhover[0]←⌊1⊃opt slider 'buttonhover_r'(color_buttonhover[0])0 255 0(3 0)
+ color_buttonhover[1]←⌊1⊃opt slider 'buttonhover_g'(color_buttonhover[1])0 255 0(3 0)
+ color_buttonhover[2]←⌊1⊃opt slider 'buttonhover_b'(color_buttonhover[2])0 255 0(3 0)
+ color_buttonhover[3]←⌊1⊃opt slider 'buttonhover_a'(color_buttonhover[3])0 255 0(3 0)
+ layout_next draw_rect color_buttonhover
+ 
+ label 'buttonfocus:'
+ color_buttonfocus[0]←⌊1⊃opt slider 'buttonfocus_r'(color_buttonfocus[0])0 255 0(3 0)
+ color_buttonfocus[1]←⌊1⊃opt slider 'buttonfocus_g'(color_buttonfocus[1])0 255 0(3 0)
+ color_buttonfocus[2]←⌊1⊃opt slider 'buttonfocus_b'(color_buttonfocus[2])0 255 0(3 0)
+ color_buttonfocus[3]←⌊1⊃opt slider 'buttonfocus_a'(color_buttonfocus[3])0 255 0(3 0)
+ layout_next draw_rect color_buttonfocus
+ 
+ label 'base:'
+ color_base[0]←⌊1⊃opt slider 'base_r'(color_base[0])0 255 0(3 0)
+ color_base[1]←⌊1⊃opt slider 'base_g'(color_base[1])0 255 0(3 0)
+ color_base[2]←⌊1⊃opt slider 'base_b'(color_base[2])0 255 0(3 0)
+ color_base[3]←⌊1⊃opt slider 'base_a'(color_base[3])0 255 0(3 0)
+ layout_next draw_rect color_base
+ 
+ label 'basehover:'
+ color_basehover[0]←⌊1⊃opt slider 'basehover_r'(color_basehover[0])0 255 0(3 0)
+ color_basehover[1]←⌊1⊃opt slider 'basehover_g'(color_basehover[1])0 255 0(3 0)
+ color_basehover[2]←⌊1⊃opt slider 'basehover_b'(color_basehover[2])0 255 0(3 0)
+ color_basehover[3]←⌊1⊃opt slider 'basehover_a'(color_basehover[3])0 255 0(3 0)
+ layout_next draw_rect color_basehover
+ 
+ label 'basefocus:'
+ color_basefocus[0]←⌊1⊃opt slider 'basefocus_r'(color_basefocus[0])0 255 0(3 0)
+ color_basefocus[1]←⌊1⊃opt slider 'basefocus_g'(color_basefocus[1])0 255 0(3 0)
+ color_basefocus[2]←⌊1⊃opt slider 'basefocus_b'(color_basefocus[2])0 255 0(3 0)
+ color_basefocus[3]←⌊1⊃opt slider 'basefocus_a'(color_basefocus[3])0 255 0(3 0)
+ layout_next draw_rect color_basefocus
+ 
+ label 'scrollbase:'
+ color_scrollbase[0]←⌊1⊃opt slider 'scrollbase_r'(color_scrollbase[0])0 255 0(3 0)
+ color_scrollbase[1]←⌊1⊃opt slider 'scrollbase_g'(color_scrollbase[1])0 255 0(3 0)
+ color_scrollbase[2]←⌊1⊃opt slider 'scrollbase_b'(color_scrollbase[2])0 255 0(3 0)
+ color_scrollbase[3]←⌊1⊃opt slider 'scrollbase_a'(color_scrollbase[3])0 255 0(3 0)
+ layout_next draw_rect color_scrollbase
+ 
+ label 'scrollthumb:'
+ color_scrollthumb[0]←⌊1⊃opt slider 'scrollthumb_r'(color_scrollthumb[0])0 255 0(3 0)
+ color_scrollthumb[1]←⌊1⊃opt slider 'scrollthumb_g'(color_scrollthumb[1])0 255 0(3 0)
+ color_scrollthumb[2]←⌊1⊃opt slider 'scrollthumb_b'(color_scrollthumb[2])0 255 0(3 0)
+ color_scrollthumb[3]←⌊1⊃opt slider 'scrollthumb_a'(color_scrollthumb[3])0 255 0(3 0)
+ layout_next draw_rect color_scrollthumb
+ 
+ end_window
+ →LOG_WIN
 
 LOG_WIN:res←begin_window 'Log Window' (350 40 300 200)
  →LOG_WIN_CLOSED LOG_WIN_OPEN[RES_ACTIVE⊃res]
