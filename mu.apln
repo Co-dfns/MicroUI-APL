@@ -789,8 +789,10 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size
  init
+ 
+ win_size←1024 768
 
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←''
 
@@ -798,9 +800,9 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  rl.⎕IO←1
 
  rl.Init rl_dir
- rl.InitWindow 800 600 'MicroUI APL Demo'
+ rl.InitWindow win_size,⊂'MicroUI APL Demo'
  rl.SetWindowState rl.ConfigFlags.FLAG_WINDOW_RESIZABLE
-
+ 
  font_size←16
  style_font←⊃rl.LoadFontEx 'resources/Inter-Medium.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
@@ -816,7 +818,7 @@ EXIT:
  rl.CloseWindow⍬
  →0
  
-FRAME_RATE:res←begin_window 'Stats' (0 0 128 55)
+FRAME_RATE:res←begin_window 'Stats' (((⊃win_size)-128) 0 128 55)
  →FRAME_RATE_CLOSED FRAME_RATE_OPEN[RES_ACTIVE⊃res]
 FRAME_RATE_CLOSED:
  →STYLE_WIN
