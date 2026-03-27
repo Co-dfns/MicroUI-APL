@@ -789,7 +789,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time
  init
 
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←''
@@ -805,14 +805,25 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  style_font←⊃rl.LoadFontEx 'resources/Inter-Medium.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
 
+ start_time←20 ⎕DT ⊂⎕TS
+ 
 MAIN:→EXIT⌿⍨rl.WindowShouldClose⍬ ⋄ →CONT
 CONT:
- process_input ⋄ begin ⋄ →STYLE_WIN
+ process_input ⋄ begin ⋄ →FRAME_RATE
 EXIT:
  rl.UnloadFont style_font ⋄ style_font←0
  rl.UnloadFont icon_font ⋄ icon_font←0
  rl.CloseWindow⍬
  →0
+ 
+FRAME_RATE:res←begin_window 'Stats' (0 0 128 55)
+ →FRAME_RATE_CLOSED FRAME_RATE_OPEN[RES_ACTIVE⊃res]
+FRAME_RATE_CLOSED:
+ →STYLE_WIN
+FRAME_RATE_OPEN:
+ label ⍕(⌊frame÷1⌈(20⎕DT ⊂⎕TS)-start_time)'fps'
+ end_window
+ →STYLE_WIN
 
 STYLE_WIN:res←begin_window 'Style Editor' (350 250 300 240)
  →STYLE_WIN_CLOSED STYLE_WIN_OPEN[RES_ACTIVE⊃res]
