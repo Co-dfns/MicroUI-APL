@@ -206,18 +206,21 @@ _←0}
  {0=⊃c←rl.GetCharPressed⍬:_←0 ⋄ input_text⊢'UTF-8'⎕UCS c: ⋄ ∇⍬}⍬
 ∇
 
-∇{z}←render;i;cmd
+∇{z}←render;i;cmd;DrawText
  z←0 ⋄ i←¯1
 
  rl.BeginDrawing⍬
  rl.ClearBackground 120 125 130 255
 
+ DrawText←{rl.DrawText cmd[4],(2⊃cmd),font_size,cmd[3]} ⋄ →∆⍴⍨style_font≡0
+ DrawText←{rl.DrawTextEx cmd[1 4 2],font_size,font_spacing,cmd[3]}
+ 
 ∆:
  →END⌿⍨¯1=i←next_command i
  →BAD BAD CLIP RECT TEXT ICON IMAGE[⊃cmd←i⊃command_list]
 BAD:	'UNKNOWN COMMAND'⎕SIGNAL 99						⋄ →0
 RECT:	rl.DrawRectangle (1⊃cmd),cmd[2]						⋄ →∆
-TEXT:	rl.DrawTextEx cmd[1 4 2],font_size,font_spacing,cmd[3]			⋄ →∆
+TEXT:	DrawText⍬								⋄ →∆
 CLIP:	rl.BeginScissorMode 1⊃cmd						⋄ →∆
 ICON:	rl.DrawTextCodepoint icon_font(icons[2⊃cmd])(2↑1⊃cmd)(1 3⊃cmd)(3⊃cmd)	⋄ →∆
 IMAGE:	rl.DrawTexture (1↓cmd),⊂4⍴255						⋄ →∆
