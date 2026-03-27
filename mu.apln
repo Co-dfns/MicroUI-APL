@@ -161,7 +161,7 @@ jump_dst←1
 ⍝ Default Callbacks                                                            ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
-font_size	←16
+font_size	←12
 font_spacing	←0
 icons		←⎕UCS ' '
 
@@ -801,6 +801,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  rl.InitWindow 800 600 'MicroUI APL Demo'
  rl.SetWindowState rl.ConfigFlags.FLAG_WINDOW_RESIZABLE
 
+ font_size←16
  style_font←⊃rl.LoadFontEx 'resources/Inter-Medium.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
 
