@@ -186,7 +186,7 @@ _←0}
  {}MOUSE_RIGHT input_mouseup⍣(rl.IsMouseButtonReleased rl.MouseButton.MOUSE_BUTTON_RIGHT)⊢rl.GetMousePosition⍬
  {}MOUSE_MIDDLE input_mousedown⍣(rl.IsMouseButtonPressed rl.MouseButton.MOUSE_BUTTON_MIDDLE)⊢rl.GetMousePosition⍬
  {}MOUSE_MIDDLE input_mouseup⍣(rl.IsMouseButtonReleased rl.MouseButton.MOUSE_BUTTON_MIDDLE)⊢rl.GetMousePosition⍬
- input_scroll rl.GetMouseWheelMoveV⍬
+ input_scroll -rl.GetMouseWheelMoveV⍬
  {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_BACKSPACE)⊢KEY_BACKSPACE
  {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_ENTER)⊢KEY_RETURN
  {}input_keydown⍣(rl.(IsKeyPressed∨IsKeyPressedRepeat) rl.KeyboardKey.KEY_RIGHT_SHIFT)⊢KEY_SHIFT
