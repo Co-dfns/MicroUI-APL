@@ -808,12 +808,12 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size;win;r;lorem
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size;win;r;lorem;checks
  init
  
  win_size←1024 768
 
- logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄ win_background←90 95 100
+ logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄ win_background←90 95 100 ⋄ checks←1 0 1
 
  rl←0⎕FIX 'raylib.apln',⍨rl_dir←(⊃1⎕NPARTS''),'raylibAPL/link/'
  rl.⎕IO←1
@@ -1052,6 +1052,9 @@ TREE_2_END:
 
  →(begin_treenode 'Test 3')[RES_ACTIVE]⊃TREE_3_END TREE_3_BEGIN
 TREE_3_BEGIN:
+ checks[0]←1⊃'chk_1'checkbox 'Checkbox 1' (checks[0])
+ checks[1]←1⊃'chk_2'checkbox 'Checkbox 2' (checks[1])
+ checks[2]←1⊃'chk_3'checkbox 'Checkbox 3' (checks[2])
  end_treenode
 TREE_3_END:
 
