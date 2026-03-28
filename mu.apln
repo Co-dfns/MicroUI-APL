@@ -722,7 +722,7 @@ scrollbars←{cnt←⍺ ⋄ body←⍵
  res←MT_RES ⋄ →∆⍴⍨0≠⎕NC'opt' ⋄ opt←MT_OPT
  
 ∆:cnt←opt get_container_id id←get_id title
- →0⌿⍨(¯1=cnt)≥containers[cnt;cnt_open]
+ →0⍴⍨¯1=cnt ⋄ →0⍴⍨~containers[cnt;cnt_open]
  id_stack[id_stack_idx]←id ⋄ id_stack_idx+←1
  tr←containers[cnt;cnt_rect[2]]=0
  containers[cnt;cnt_rect]←(rect×tr)+containers[cnt;cnt_rect]×~tr
