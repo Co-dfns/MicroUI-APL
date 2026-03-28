@@ -666,8 +666,21 @@ number←{
 	XXX
 }
 
-header←{
-	XXX
+header←{⍺←0 MT_OPT ⋄ istreenode opt←⍺ ⋄ label←⍵ ⋄ id←get_id label
+	idx←treenode_pool pool_get id
+	¯1 layout_row 1 0:
+	active←idx≥0 ⋄ expanded←opt[OPT_EXPANDED]≠active
+	r←layout_next ⋄ update_control id r:
+	active≠←(focus=id)∧1 0 0≡mouse_pressed
+	_←pool_update_treenode⍣(active∧idx≥0)⊢idx
+	_←{treenode_pool[idx;]←0}⍣(active<idx≥0)⊢0
+	_←pool_init_treenode⍣(active∧idx<0)⊢id
+	_←draw_frame⍣(istreenode∧hover=id)⊢r color_buttonhover
+	_←draw_control_frame_button⍣(~istreenode)⊢id r
+	_←ICON_COLLAPSED ICON_EXPANDED[expanded]draw_icon r[0 1 3 3] color_text
+	r[0 2]+←1 ¯1×r[3]-style_padding
+	draw_control_text label r color_text:
+	expanded@RES_ACTIVE⊢MT_RES
 }
 
 begin_treenode←{
@@ -786,7 +799,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size;win
  init
  
  win_size←1024 768
@@ -947,8 +960,7 @@ STYLE_WIN_OPEN:
 
 LOG_WIN:res←begin_window 'Log Window' (350 40 300 200)
  →LOG_WIN_CLOSED LOG_WIN_OPEN[RES_ACTIVE⊃res]
-LOG_WIN_CLOSED:
- end ⋄ render ⋄ →MAIN
+LOG_WIN_CLOSED:→TEST_WIN
 LOG_WIN_OPEN:
  ¯1 layout_row 1 ¯25
  begin_panel 'Log Output'
@@ -965,8 +977,33 @@ LOG_WIN_OPEN:
  submitted∨←RES_SUBMIT⊃button 'Submit'
  logbuf,←submitted⌿((logbuf≢'')⌿⎕UCS 10),buf ⋄ logbuf_updated←submitted
  buf←submitted⊃buf ''
- end_window ⋄ end ⋄ render
- →MAIN
+ end_window
+ →TEST_WIN
+ 
+TEST_WIN:res←begin_window 'Demo Window' (40 40 300 450)
+ →TEST_WIN_CLOSED TEST_WIN_OPEN[RES_ACTIVE⊃res]
+TEST_WIN_CLOSED:end ⋄ render ⋄ →MAIN
+TEST_WIN_OPEN:
+ win←get_current_container
+ containers[win;cnt_rect[2 3]]⌈←240 300
+
+TW_INFO:res←header 'Window Info'
+ →TW_INFO_CLOSED TW_INFO_OPEN[RES_ACTIVE⊃res]
+TW_INFO_CLOSED:→LB
+TW_INFO_OPEN:
+ win←get_current_container
+ 54 ¯1 layout_row 2 0
+ label 'Position:' ⋄ label ⍕containers[win;2↑cnt_rect]
+ label 'Size:' ⋄ label ⍕containers[win;¯2↑cnt_rect]
+ →LB
+
+LB:res←0(1@OPT_EXPANDED⊢MT_OPT)header 'Test Buttons'
+ →LB_CLOSED LB_OPENED[RES_ACTIVE⊃res]
+LB_CLOSED:end_window ⋄ end ⋄ render ⋄ →MAIN
+ 
+LB_OPENED:
+ end_window ⋄ end ⋄ render ⋄ →MAIN
+
 ∇
 
 
