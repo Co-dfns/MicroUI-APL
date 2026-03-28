@@ -663,8 +663,15 @@ slider←{⍺←1@OPT_ALIGNCENTER⊢MT_OPT ⋄ opt←⍺ ⋄ id value low high s
 	res value
 }
 
-number←{
-	XXX
+number←{⍺←1@OPT_ALIGNCENTER⊢MT_OPT ⋄ opt←⍺ ⋄ id value step fmt←4↑⍵,2 ⋄ res←MT_RES
+	id←get_id id ⋄ base←layout_next ⋄ last←value
+	id number_textbox value base:res value
+	opt update_control id r:
+	value+←(mouse_delta[0]×step)×(focus=id)∧1 0 0≡mouse_down
+	res[RES_CHANGE]←value≠last
+	opt draw_control_frame_base id base:
+	opt draw_control_text (fmt⍕value) base color_text:
+	res value
 }
 
 header←{⍺←MT_OPT ⋄ opt←⍺ ⋄ label istreenode←2↑(⊆⍵),0 ⋄ id←get_id label
