@@ -645,7 +645,8 @@ number_textbox←{id←⍺ ⋄ value r←⍵
 
 textbox←{⍺←MT_OPT ⋄ opt←⍺ ⋄ lbl buf←⍵ ⋄ id←get_id lbl ⋄ textbox_raw buf id layout_next}
 
-slider←{⍺←MT_OPT ⋄ opt←⍺ ⋄ id value low high step spec←⍵ ⋄ res←MT_RES
+slider←{⍺←1@OPT_ALIGNCENTER⊢MT_OPT ⋄ opt←⍺ ⋄ id value low high step spec←6↑⍵,0 2
+	res←MT_RES
 	id←get_id id ⋄ last←value ⋄ base←layout_next
 	⊃_ value←id number_textbox value base:res value
 	opt update_control id base:
@@ -1072,9 +1073,9 @@ BCKG_BEGIN:
  ¯78 ¯1 layout_row 2 74
  layout_begin_column
  46 ¯1 layout_row 2 0
- label 'Red' ⋄ win_background[0]←⌊1⊃slider 'bg_r'(win_background[0])0 255 0 (3 0)
- label 'Green:' ⋄ win_background[1]←⌊1⊃slider 'bg_g'(win_background[1])0 255 0 (3 0)
- label 'Blue:' ⋄ win_background[2]←⌊1⊃slider 'bg_b'(win_background[2])0 255 0 (3 0)
+ label 'Red' ⋄ win_background[0]←⌊1⊃slider 'bg_r'(win_background[0])0 255
+ label 'Green:' ⋄ win_background[1]←⌊1⊃slider 'bg_g'(win_background[1])0 255
+ label 'Blue:' ⋄ win_background[2]←⌊1⊃slider 'bg_b'(win_background[2])0 255
  layout_end_column
  r←layout_next ⋄ r draw_rect win_background,255
  (1@OPT_ALIGNCENTER⊢MT_OPT)draw_control_text (⍕win_background) r color_text
