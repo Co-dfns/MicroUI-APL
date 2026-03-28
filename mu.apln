@@ -666,7 +666,7 @@ number←{
 	XXX
 }
 
-header←{⍺←0 MT_OPT ⋄ istreenode opt←⍺ ⋄ label←⍵ ⋄ id←get_id label
+header←{⍺←MT_OPT ⋄ opt←⍺ ⋄ label istreenode←2↑(⊆⍵),0 ⋄ id←get_id label
 	idx←treenode_pool pool_get id
 	¯1 layout_row 1 0:
 	active←idx≥0 ⋄ expanded←opt[OPT_EXPANDED]≠active
@@ -771,17 +771,20 @@ CLOSE_IF_POPUP:
  z←0 ⋄ pop_clip_rect ⋄ end_root_container
 ∇
 
-open_popup←{
-	XXX
+open_popup←{name←⍵ ⋄ cnt←get_container name
+	hover_root∘←next_hover_root∘←cnt
+	containers[cnt;cnt_rect,cnt_open]←mouse_pos,1 1 1
+	bring_to_front cnt
 }
 
-begin_popup←{
-	XXX
+begin_popup←{name←⍵
+	opt←1@(OPT_POPUP OPT_AUTOSIZE OPT_NORESIZE OPT_NOSCROLL OPT_NOTITLE OPT_CLOSED)⊢MT_OPT
+	opt begin_window name (0 0 0 0)
 }
 
-end_popup←{
-	XXX
-}
+∇{z}←end_popup
+ z←end_window
+∇
 
 begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 	push_id name:
@@ -987,23 +990,27 @@ TEST_WIN_OPEN:
  win←get_current_container
  containers[win;cnt_rect[2 3]]⌈←240 300
 
-TW_INFO:res←header 'Window Info'
- →TW_INFO_CLOSED TW_INFO_OPEN[RES_ACTIVE⊃res]
-TW_INFO_CLOSED:→LB
-TW_INFO_OPEN:
+ →(header 'Window Info')[RES_ACTIVE]⊃TW_INFO_END TW_INFO_BEGIN
+TW_INFO_BEGIN:
  win←get_current_container
  54 ¯1 layout_row 2 0
  label 'Position:' ⋄ label ⍕containers[win;2↑cnt_rect]
  label 'Size:' ⋄ label ⍕containers[win;¯2↑cnt_rect]
- →LB
-
-LB:res←0(1@OPT_EXPANDED⊢MT_OPT)header 'Test Buttons'
- →LB_CLOSED LB_OPENED[RES_ACTIVE⊃res]
-LB_CLOSED:end_window ⋄ end ⋄ render ⋄ →MAIN
+TW_INFO_END:
  
-LB_OPENED:
- end_window ⋄ end ⋄ render ⋄ →MAIN
+ →(res←(1@OPT_EXPANDED⊢MT_OPT)header 'Test Buttons')[RES_ACTIVE]⊃LB_END LB_BEGIN
+LB_BEGIN:
+ 96 ¯102 ¯1 layout_row 3 0
+ label 'Test buttons 1:'
+ logbuf,←(button 'Button 1')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 1'
+ logbuf,←(button 'Button 2')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 2'
+ label 'Test buttons 2:'
+ logbuf,←(button 'Button 3')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 3'
+ {}open_popup⍣((button 'Popup')[RES_SUBMIT])⊢'Test Popup'
+ {}{_←button¨'Hello' 'World' ⋄ end_popup}⍣((begin_popup 'Test Popup')[RES_ACTIVE])⊢⍬
+LB_END:
 
+ end_window ⋄ end ⋄ render ⋄ →MAIN
 ∇
 
 
