@@ -206,23 +206,20 @@ _←0}
  {0=⊃c←rl.GetCharPressed⍬:_←0 ⋄ input_text⊢'UTF-8'⎕UCS c: ⋄ ∇⍬}⍬
 ∇
 
-∇{z}←render;i;cmd;DrawText
+∇{z}←render;i;cmd
  z←0 ⋄ i←¯1
 
  rl.BeginDrawing⍬
  rl.ClearBackground 120 125 130 255
 
- DrawText←{rl.DrawText cmd[4],(2⊃cmd),font_size,cmd[3]} ⋄ →∆⍴⍨style_font≡0
- DrawText←{rl.DrawTextEx cmd[1 4 2],font_size,font_spacing,cmd[3]}
- 
 ∆:
  →END⌿⍨¯1=i←next_command i
  →BAD BAD CLIP RECT TEXT ICON IMAGE[⊃cmd←i⊃command_list]
 BAD:	'UNKNOWN COMMAND'⎕SIGNAL 99						⋄ →0
-RECT:	rl.DrawRectangle (1⊃cmd),cmd[2]						⋄ →∆
-TEXT:	DrawText⍬								⋄ →∆
-CLIP:	rl.BeginScissorMode 1⊃cmd						⋄ →∆
-ICON:	rl.DrawTextCodepoint icon_font(icons[2⊃cmd])(2↑1⊃cmd)(1 3⊃cmd)(3⊃cmd)	⋄ →∆
+RECT:	{}DrawRectangle (1⊃cmd),256⊥⌽2⊃cmd					⋄ →∆
+TEXT:	{}DrawText cmd								⋄ →∆
+CLIP:	{}BeginScissorMode 1⊃cmd						⋄ →∆
+ICON:	{}DrawIcon cmd								⋄ →∆
 IMAGE:	rl.DrawTexture (1↓cmd),⊂4⍴255						⋄ →∆
 END:	rl.EndDrawing⍬								⋄ →0
 ∇
@@ -807,6 +804,20 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  style_font←⊃rl.LoadFontEx 'resources/Inter-Medium.ttf' font_size ⎕AVU (≢⎕AVU)
  icon_font←⊃rl.LoadFontEx 'resources/awesome.otf' style_title_height icons (≢icons)
 
+ ⎕NA rl.pathToBinary,'|DrawRectangle I4 I4 I4 I4 U4'
+ ⎕NA rl.pathToBinary,'|BeginScissorMode I4 I4 I4 I4'
+
+ ⍝ 'DrawTextRL'⎕NA rl.pathToBinary,'|DrawText <0C[] I4 I4 I4 U4'
+ ⍝ DrawText←{DrawTextRL ⍵[4],(2⊃⍵),font_size,256⊥⌽3⊃⍵}
+ 
+ FontSpec←'{I4 I4 I4 {U4 I4 I4 I4 I4} P P}'
+ 'DrawTextExRL'⎕NA rl.pathToBinary,'|DrawTextEx ',FontSpec,' <0C[] {F4 F4} F4 F4 U4'
+ DrawText←{_ font pos color str←⍵
+ 	rl.DrawTextEx font str pos font_size font_spacing color
+ }
+ 
+ DrawIcon←{_←rl.DrawTextCodepoint icon_font(icons[2⊃cmd])(2↑1⊃cmd)(1 3⊃cmd)(3⊃cmd)}
+ 
  start_time←20 ⎕DT ⊂⎕TS
  
 MAIN:→EXIT⌿⍨rl.WindowShouldClose⍬ ⋄ →CONT
