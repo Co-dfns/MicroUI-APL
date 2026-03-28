@@ -821,8 +821,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  start_time←20 ⎕DT ⊂⎕TS
  
 MAIN:→EXIT⌿⍨rl.WindowShouldClose⍬ ⋄ →CONT
-CONT:
- process_input ⋄ begin ⋄ →FRAME_RATE
+CONT:process_input ⋄ begin ⋄ →FRAME_RATE
 EXIT:
  rl.UnloadFont style_font ⋄ style_font←0
  rl.UnloadFont icon_font ⋄ icon_font←0
@@ -831,8 +830,7 @@ EXIT:
  
 FRAME_RATE:res←begin_window 'Stats' (((⊃win_size)-128) 0 128 55)
  →FRAME_RATE_CLOSED FRAME_RATE_OPEN[RES_ACTIVE⊃res]
-FRAME_RATE_CLOSED:
- →STYLE_WIN
+FRAME_RATE_CLOSED:→STYLE_WIN
 FRAME_RATE_OPEN:
  label ⍕(⌊frame÷1⌈(20⎕DT ⊂⎕TS)-start_time)'fps'
  end_window
@@ -840,8 +838,7 @@ FRAME_RATE_OPEN:
 
 STYLE_WIN:res←begin_window 'Style Editor' (350 250 300 240)
  →STYLE_WIN_CLOSED STYLE_WIN_OPEN[RES_ACTIVE⊃res]
-STYLE_WIN_CLOSED:
- →LOG_WIN
+STYLE_WIN_CLOSED:→LOG_WIN
 STYLE_WIN_OPEN:
  sw←⌊containers[get_current_container;cnt_body][2]×0.14
  80 sw sw sw sw ¯1 layout_row 6 0
