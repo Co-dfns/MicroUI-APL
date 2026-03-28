@@ -210,7 +210,7 @@ _←0}
  z←0 ⋄ i←¯1
 
  rl.BeginDrawing⍬
- rl.ClearBackground 120 125 130 255
+ rl.ClearBackground win_background,255
 
 ∆:
  →END⌿⍨¯1=i←next_command i
@@ -683,13 +683,19 @@ header←{⍺←MT_OPT ⋄ opt←⍺ ⋄ label istreenode←2↑(⊆⍵),0 ⋄ i
 	expanded@RES_ACTIVE⊢MT_RES
 }
 
-begin_treenode←{
-	XXX
+begin_treenode←{⍺←MT_OPT ⋄ opt←⍺ ⋄ label←⍵
+	res←opt header label 1
+	~res[RES_ACTIVE]:res
+	layout_stack[get_layout;lyt_indent]+←style_indent
+	id_stack[id_stack_idx]←last_id ⋄ id_stack_idx+←1
+	res
 }
 
-end_treenode←{
-	XXX
-}
+∇{z}←end_treenode
+ z←0
+ layout_stack[get_layout;lyt_indent]-←style_indent
+ pop_id
+∇
 
 scrollbar←{cnt b cs (x y w h)←⍵
 	maxscroll←cs[y]-b[h]
@@ -802,12 +808,12 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size;win
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size;win;r;lorem
  init
  
  win_size←1024 768
 
- logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←''
+ logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄ win_background←90 95 100
 
  rl←0⎕FIX 'raylib.apln',⍨rl_dir←(⊃1⎕NPARTS''),'raylibAPL/link/'
  rl.⎕IO←1
@@ -1009,6 +1015,67 @@ LB_BEGIN:
  {}open_popup⍣((button 'Popup')[RES_SUBMIT])⊢'Test Popup'
  {}{_←button¨'Hello' 'World' ⋄ end_popup}⍣((begin_popup 'Test Popup')[RES_ACTIVE])⊢⍬
 LB_END:
+
+ →((1@OPT_EXPANDED⊢MT_OPT)header 'Tree and Text')[RES_ACTIVE]⊃TREE_CLOSED TREE_OPENED
+TREE_CLOSED:→BCKG
+TREE_OPENED:
+ 140 ¯1 layout_row 2 0
+ layout_begin_column
+
+ →(begin_treenode 'Test 1')[RES_ACTIVE]⊃TREE_1_CLOSED TREE_1_OPENED
+TREE_1_CLOSED:→TREE_2
+TREE_1_OPENED:
+ 
+ →(begin_treenode 'Test 1a')[RES_ACTIVE]⊃TREE_1A_END TREE_1A_BEGIN
+TREE_1A_BEGIN:
+ label 'Hello' ⋄ label 'world' ⋄ end_treenode
+TREE_1A_END:
+
+ →(begin_treenode 'Test 1b')[RES_ACTIVE]⊃TREE_1B_END TREE_1B_BEGIN
+TREE_1B_BEGIN:
+ logbuf,←(button 'Button 1')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 1'
+ logbuf,←(button 'Button 2')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 2'
+ end_treenode
+TREE_1B_END:
+
+ end_treenode
+
+TREE_2:→(begin_treenode 'Test 2')[RES_ACTIVE]⊃TREE_2_END TREE_2_BEGIN
+TREE_2_BEGIN:
+ 54 54 layout_row 2 0
+ logbuf,←(button 'Button 3')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 3'
+ logbuf,←(button 'Button 4')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 4'
+ logbuf,←(button 'Button 5')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 5'
+ logbuf,←(button 'Button 6')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 6'
+ end_treenode
+TREE_2_END:
+
+ →(begin_treenode 'Test 3')[RES_ACTIVE]⊃TREE_3_END TREE_3_BEGIN
+TREE_3_BEGIN:
+ end_treenode
+TREE_3_END:
+
+ layout_end_column
+ layout_begin_column
+ ¯1 layout_row 1 0
+ lorem←'Lorem ipsum dolor sit amet, consectetur adipiscing '
+ lorem,←'elit. Maecenas lacinia, sem eu lacinia molestie, mi risus faucibus '
+ lorem,←'ipsum, eu varius magna felis a nulla.'
+ text lorem
+ layout_end_column
+ 
+BCKG:→((1@OPT_EXPANDED⊢MT_OPT)header 'Background Color')[RES_ACTIVE]⊃BCKG_END BCKG_BEGIN
+BCKG_BEGIN:
+ ¯78 ¯1 layout_row 2 74
+ layout_begin_column
+ 46 ¯1 layout_row 2 0
+ label 'Red' ⋄ win_background[0]←⌊1⊃slider 'bg_r'(win_background[0])0 255 0 (3 0)
+ label 'Green:' ⋄ win_background[1]←⌊1⊃slider 'bg_g'(win_background[1])0 255 0 (3 0)
+ label 'Blue:' ⋄ win_background[2]←⌊1⊃slider 'bg_b'(win_background[2])0 255 0 (3 0)
+ layout_end_column
+ r←layout_next ⋄ r draw_rect win_background,255
+ (1@OPT_ALIGNCENTER⊢MT_OPT)draw_control_text (⍕win_background) r color_text
+BCKG_END:
 
  end_window ⋄ end ⋄ render ⋄ →MAIN
 ∇
