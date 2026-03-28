@@ -816,18 +816,16 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win_size;win;r;lorem;checks
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks
  init
  
- win_size←1024 768
-
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄ win_background←90 95 100 ⋄ checks←1 0 1
 
  rl←0⎕FIX 'raylib.apln',⍨rl_dir←(⊃1⎕NPARTS''),'raylibAPL/link/'
  rl.⎕IO←1
 
  rl.Init rl_dir
- rl.InitWindow win_size,⊂'MicroUI APL Demo'
+ rl.InitWindow 1024 768 'MicroUI APL Demo'
  rl.SetWindowState rl.ConfigFlags.FLAG_WINDOW_RESIZABLE
  
  font_size←16
@@ -859,7 +857,7 @@ EXIT:
  rl.CloseWindow⍬
  →0
  
-FRAME_RATE:res←begin_window 'Stats' (((⊃win_size)-128) 0 128 55)
+FRAME_RATE:res←begin_window 'Stats' ((¯128+rl.GetScreenWidth⍬) 0 128 55)
  →FRAME_RATE_CLOSED FRAME_RATE_OPEN[RES_ACTIVE⊃res]
 FRAME_RATE_CLOSED:→STYLE_WIN
 FRAME_RATE_OPEN:
