@@ -218,7 +218,7 @@ _←0}
 BAD:	'UNKNOWN COMMAND'⎕SIGNAL 99						⋄ →0
 RECT:	{}DrawRectangle (1⊃cmd),256⊥⌽2⊃cmd					⋄ →∆
 TEXT:	{}DrawText cmd								⋄ →∆
-CLIP:	{}BeginScissorMode 1⊃cmd						⋄ →∆
+CLIP:	{}{⍵≡UNCLIPPED_RECT:EndScissorMode ⋄ BeginScissorMode ⍵}1⊃cmd		⋄ →∆
 ICON:	{}DrawIcon cmd								⋄ →∆
 IMAGE:	rl.DrawTexture (1↓cmd),⊂4⍴255						⋄ →∆
 END:	rl.EndDrawing⍬								⋄ →0
@@ -836,6 +836,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
  ⎕NA rl.pathToBinary,'|DrawRectangle I4 I4 I4 I4 U4'
  ⎕NA rl.pathToBinary,'|BeginScissorMode I4 I4 I4 I4'
+ ⎕NA rl.pathToBinary,'|EndScissorMode'
 
  ⍝ 'DrawTextRL'⎕NA rl.pathToBinary,'|DrawText <0C[] I4 I4 I4 U4'
  ⍝ DrawText←{DrawTextRL ⍵[4],(2⊃⍵),font_size,256⊥⌽3⊃⍵}
