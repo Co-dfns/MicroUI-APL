@@ -161,19 +161,19 @@ jump_dst←1
 ⍝ Default Callbacks                                                            ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
-text_width←{font←⍺ ⋄ str←⍵ ⋄ 10×≢str
+text_width←{font←⍺ ⋄ str←⍵ ⋄ 12×≢str
 	(1=≢font)∧0=⊃font:rl.MeasureText str font_size
 	⊃rl.MeasureTextEx font str font_size font_spacing
 }
 
-text_height←{font←⍵ ⋄ font_size}
+text_height←{font←⍵ ⋄ 18}
 
 draw_frame←{⍺←1 ⋄ rect color←⍵
 	rect draw_rect color:
 	⍺∧0≠3⊃color_border:(rect expand_rect 1)draw_box color_border
 _←0}
 
-∇{(struct state)}←begin_render(title width height)
+∇{(struct state)}←begin_render(title width height);tie
  z←0
  
  'fenster_open'⎕NA 'P fenster.dll|fenster_open_apl <0C[] I4 I4 <U4[]'
@@ -181,19 +181,21 @@ _←0}
  'fenster_close'⎕NA 'fenster.dll|fenster_close_apl P'
  'fenster_sleep'⎕NA 'fenster.dll|fenster_sleep I4'
  'fenster_time'⎕NA 'I8 fenster.dll|fenster_time'
-
+ 
  init
  
- font_size	←12
- icons		←⎕UCS ' '
  last		←fenster_time
- color_framebg	←90  95 100 255
+ color_framebg	←90 95 100 255
+
+ tie←'resources\atlas'⎕FTIE 0
+ atlas←,⊂⍤2⊢0 2 1 3⍉9 18 11 12⍴⎕FREAD tie 1
+ ⎕FUNTIE tie
  
  struct←fenster_open title width height (,height width⍴256⊥3↑color_framebg)
  state←last(256⍴0)0 0
 ∇
 
-∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;res;last;keys;mod;x;y;mouse;scissor_rect;xi;yi;r;g;b;a;box
+∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;mouse;scissor_rect;xi;yi;id;color;icon;w;h;str;a
  z←0 ⋄ i←¯1 ⋄ (last keys mod mouse)←state
 
  fb←height width⍴256⊥3↑color_framebg
@@ -203,14 +205,22 @@ _←0}
  →END⌿⍨¯1=i←next_command i
  →BAD BAD CLIP RECT TEXT ICON IMAGE[⊃cmd←i⊃command_list]
 BAD:'UNKNOWN COMMAND'⎕SIGNAL 99 ⋄ →0
-RECT:_ box (r g b a)←cmd
- x y w h←box intersect_rects scissor_rect
+RECT:_ (x y w h) color←cmd ⋄ a←3⊃color
+ x y w h←x y w h intersect_rects scissor_rect
  xi yi←x y+⍳¨0⌈((x+w)(y+h)⌊width height)-x y
- fb[yi;xi]←⌊((a×256⊥r g b)+(255-a)×fb[yi;xi])÷255
+ fb[yi;xi]←256⊥⌊((a×3↑color)+[0](255-a)×(3⍴256)⊤fb[yi;xi])÷255
  →∆
-TEXT:→∆
+TEXT:_ _ (x y) color str←cmd
+ h w←⍴a←⊃,/atlas[(32⌈127⌊⎕UCS str)-28] ⋄ a←⌊(a×3⊃color)÷255
+ yi xi←y x+⍳¨a↑⍨←0⌈((y+h)(x+w)⌊height width)-y x
+ fb[yi;xi]←256⊥⌊(((3↑color)∘.×a)+(255-a)×[1 2](3⍴256)⊤fb[yi;xi])÷255
+ →∆
 CLIP:scissor_rect←1⊃cmd ⋄ →∆
-ICON:→∆
+ICON:_ (x y w h)id color←cmd ⋄ icon←⌊((atlas⊃⍨id-1)×3⊃color)÷255
+ y x+←⌊(h w-⍴icon)÷2 ⋄ h w←⍴icon ⋄ x y w h←x y w h intersect_rects scissor_rect
+ xi yi←x y+⍳¨0⌈((x+w)(y+h)⌊width height)-x y
+ fb[yi;xi]←256⊥⌊(((3↑color)∘.×icon)+(255-icon)×[1 2](3⍴256)⊤fb[yi;xi])÷255
+ →∆
 IMAGE:→∆
 END:
  →0⍴⍨⊃(z ∆keys ∆mod x y ∆mouse)←fenster_loop struct fb 256 1 1 1 1
