@@ -858,7 +858,9 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  z←0 ⋄ pop_clip_rect ⋄ pop_container
 ∇
 
-⍝ Demo Program and Tests
+⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
+⍝ Demo Program and Tests                                                       ⍝
+⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
 ∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks;struct;width;height;state;hex
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄  ⋄ checks←1 0 1
@@ -1104,6 +1106,5 @@ BCKG_END:
 
  end_window ⋄ end ⋄ →MAIN
 ∇
-
 
 :EndNamespace
