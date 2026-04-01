@@ -13,7 +13,12 @@ All of the code include demo, fenster, and the microui implementation,
 rendering code, and comments, comes in at ~1200 lines of code. 
 The `resources` directory includes a 133KB atlas binary needed for the 
 fenster render to render fonts and icons. This atlas was built using the 
-[Inter](https://fonts.google.com/specimen/Inter) font. 
+[Inter](https://fonts.google.com/specimen/Inter) font. The fenster DLL
+comes in around 100KB on my machine, and there are no other dependencies 
+except for native platform libraries. 
+
+We attempt to ensure that all of the same advantages found in the original 
+library exist in this reimplementation. 
 
 ## Installation
 
