@@ -180,8 +180,12 @@ jump_dst←1
 ∇
 
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
-⍝ Default Callbacks                                                            ⍝
+⍝ Rendering                                                                    ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
+
+kc_shiftable←⎕UCS '`1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ-=[]\;'',./'
+kc_shifted←  ⎕UCS '~!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ_+{}|:"<>?'
+kc_unshifted←⎕UCS '`1234567890abcdefghijklmnopqrstuvwxyz-=[]\;'',./'
 
 text_width←{0=≢⍵:0 ⋄ +⌿atlas_boxes[(32⌈127⌊⎕UCS ⍵)-28;2]}
 text_height←{18}
@@ -213,7 +217,7 @@ _←0}
  state←last(256⍴0)0 0
 ∇
 
-∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;cx;cy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;cw;ch;str;a
+∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;cx;cy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;cw;ch;str;a;shifted;unshifted
  z←0 ⋄ i←¯1 ⋄ (last keys mod mouse)←state
 
  fb←height width⍴256⊥3↑color_framebg
@@ -244,13 +248,16 @@ ICON:_ (x y w h)id color←cmd ⋄ icon←⌊((atlas⊃⍨id-1)×3⊃color)÷255
 IMAGE:→∆
 END:
  →0⍴⍨⊃(z ∆keys ∆mod x y ∆mouse)←fenster_loop struct fb 256 1 1 1 1
- state←last ∆keys ∆mod ∆mouse
  (MOUSE_LEFT⌿⍨∆mouse>mouse)input_mousedown x y
  (MOUSE_LEFT⌿⍨mouse>∆mouse)input_mouseup x y
  y←KEY_RETURN KEY_BACKSPACE KEY_ALT KEY_SHIFT KEY_CTRL
  input_keydown y⌿⍨(∆keys[10 8],(3⍴2)⊤∆mod)>keys[10 8],(3⍴2)⊤mod
  input_keyup y⌿⍨(keys[10 8],(3⍴2)⊤mod)>∆keys[10 8],(3⍴2)⊤∆mod
- input_text(∆keys[i]>keys[i])⌿⎕UCS i←(2×16)+⍳127-32
+ shifted←∆keys[kc_shiftable]∧key_down[KEY_SHIFT]
+ unshifted←∆keys[kc_shiftable]>key_down[KEY_SHIFT]
+ ∆keys[kc_unshifted]←unshifted ⋄ ∆keys[kc_shifted]←shifted
+ input_text (∆keys[i]>keys[i])⌿⎕UCS i←32+⍳95
+ state←last ∆keys ∆mod ∆mouse
 ∇
 
 ∇{z}←end_render struct
