@@ -219,7 +219,7 @@ _←0}
  state←last(256⍴0)0 0
 ∇
 
-∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;ox;oy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;str;a;shifted;unshifted
+∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;ox;oy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;str;a;shifted;unshifted;img
  z←0 ⋄ i←¯1 ⋄ (last keys mod mouse)←state
 
  fb←height width⍴256⊥3↑color_framebg
@@ -248,7 +248,13 @@ ICON:_ (ox oy w h)id color←cmd ⋄ icon←⌊((atlas⊃⍨id-1)×3⊃color)÷2
  icon←icon[(⍳h)+y-oy;(⍳w)+x-ox]
  fb[yi;xi]←256⊥⌊(((3↑color)∘.×icon)+(255-icon)×[1 2](3⍴256)⊤fb[yi;xi])÷255
  →∆
-IMAGE:→∆
+IMAGE:_ img (ox oy w h)←cmd ⋄ h w⌊←⍴img
+ x y w h←ox oy w h intersect_rects scissor_rect
+ x y w h←x y w h intersect_rects 0 0 width height
+ xi yi←x y+⍳¨w h
+ img←(4⍴256)⊤img[(⍳h)+y-oy;(⍳w)+x-ox] ⋄ a←3⌷img ⋄ img←3↑img
+ fb[yi;xi]←256⊥⌊((img×[1 2]a)+(255-a)×[1 2](3⍴256)⊤fb[yi;xi])÷255
+ →∆
 END:
  →0⍴⍨⊃(z ∆keys ∆mod x y ∆mouse)←fenster_loop struct fb 256 1 1 1 1
  (MOUSE_LEFT⌿⍨∆mouse>mouse)input_mousedown x y
@@ -489,7 +495,7 @@ draw_icon←{id←⍺ ⋄ rect color←⍵
 	clipped≠0:set_clip UNCLIPPED_RECT
 _←0}
 
-draw_image←{img←⍺ ⋄ pos←⍵ ⋄ push_command COMMAND_IMAGE,(⊂img),pos}
+draw_image←{img←⍺ ⋄ rect←⍵ ⋄ push_command COMMAND_IMAGE img rect}
 
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 ⍝ Layout                                                                       ⍝
@@ -635,7 +641,7 @@ _←0}
 
 label←{txt←⍵ ⋄ draw_control_text txt layout_next color_text}
 
-image←{img←⍵ ⋄ ⍵ draw_image 2↑layout_next}
+image←{img←⍵ ⋄ ⍵ draw_image layout_next}
 
 button←{⍺←0(1@OPT_ALIGNCENTER⊢MT_OPT) ⋄ icon opt←⍺ ⋄ label←⍵ ⋄ res←MT_RES
 	id←get_id (label≡'')⊃label icon ⋄ r←layout_next
@@ -862,9 +868,13 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 ⍝ Demo Program and Tests                                                       ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks;struct;width;height;state;hex
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks;struct;width;height;state;hex;img;tie
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄  ⋄ checks←1 0 1
  start_time←20 ⎕DT ⊂⎕TS
+ 
+ tie←'resources\logo'⎕FTIE 0
+ img←256⊥((3⍴256)⊤⎕FREAD tie 1)⍪255
+ ⎕FUNTIE tie
  
  width height←1024 768
  →0⍴⍨0=⊃struct state←begin_render 'MicroUI Demo' width height
@@ -1014,7 +1024,7 @@ LOG_WIN_OPEN:
  
 TEST_WIN:res←begin_window 'Demo Window' (40 40 300 450)
  →TEST_WIN_CLOSED TEST_WIN_OPEN[RES_ACTIVE⊃res]
-TEST_WIN_CLOSED:end ⋄ →MAIN
+TEST_WIN_CLOSED:→PIC_WIN
 TEST_WIN_OPEN:
  win←get_current_container
  containers[win;cnt_rect[2 3]]⌈←240 300
@@ -1103,7 +1113,14 @@ BCKG_BEGIN:
  hex←'#',∊⍉(⎕D,6↑⎕A)[16 16⊤color_framebg]
  (1@OPT_ALIGNCENTER⊢MT_OPT)draw_control_text hex r color_text
 BCKG_END:
-
+ end_window ⋄ →PIC_WIN
+ 
+PIC_WIN:res←begin_window 'Picture' (500 260 490 440)
+ →PIC_WIN_CLOSED PIC_WIN_OPEN[RES_ACTIVE⊃res]
+PIC_WIN_CLOSED:end ⋄ →MAIN
+PIC_WIN_OPEN:
+ ¯1 layout_row 1 ¯1
+ image img
  end_window ⋄ end ⋄ →MAIN
 ∇
 
