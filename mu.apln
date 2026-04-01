@@ -873,7 +873,7 @@ FRAME_RATE:res←begin_window 'Stats' ((width-128) 0 128 55)
  →FRAME_RATE_CLOSED FRAME_RATE_OPEN[RES_ACTIVE⊃res]
 FRAME_RATE_CLOSED:→STYLE_WIN
 FRAME_RATE_OPEN:
- label ⍕#.FPS←(⌊frame÷1⌈(20⎕DT ⊂⎕TS)-start_time)'fps'
+ label ⍕(⌊frame÷1⌈(20⎕DT ⊂⎕TS)-start_time)'fps'
  end_window
  →STYLE_WIN
 
