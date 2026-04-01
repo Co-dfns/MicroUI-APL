@@ -999,7 +999,7 @@ LOG_WIN_OPEN:
  submitted←RES_SUBMIT⊃⊃res buf←textbox 'loginput' buf
  {}set_focus⍣submitted⊢last_id
  submitted∨←RES_SUBMIT⊃button 'Submit'
- logbuf,←submitted⌿((logbuf≢'')⌿⎕UCS 10),buf ⋄ logbuf_updated←submitted
+ logbuf_updated∨←0≠≢logbuf,←submitted⌿((logbuf≢'')⌿⎕UCS 10),buf
  buf←submitted⊃buf ''
  end_window
  →TEST_WIN
@@ -1023,10 +1023,10 @@ TW_INFO_END:
 LB_BEGIN:
  96 ¯102 ¯1 layout_row 3 0
  label 'Test buttons 1:'
- logbuf,←(button 'Button 1')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 1'
- logbuf,←(button 'Button 2')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 2'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 1')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 1'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 2')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 2'
  label 'Test buttons 2:'
- logbuf,←(button 'Button 3')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 3'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 3')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 3'
  {}open_popup⍣((button 'Popup')[RES_SUBMIT])⊢'Test Popup'
  {}{_←button¨'Hello' 'World' ⋄ end_popup}⍣((begin_popup 'Test Popup')[RES_ACTIVE])⊢⍬
 LB_END:
@@ -1048,8 +1048,8 @@ TREE_1A_END:
 
  →(begin_treenode 'Test 1b')[RES_ACTIVE]⊃TREE_1B_END TREE_1B_BEGIN
 TREE_1B_BEGIN:
- logbuf,←(button 'Button 1')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 1'
- logbuf,←(button 'Button 2')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 2'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 1')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 1'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 2')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 2'
  end_treenode
 TREE_1B_END:
 
@@ -1058,10 +1058,10 @@ TREE_1B_END:
 TREE_2:→(begin_treenode 'Test 2')[RES_ACTIVE]⊃TREE_2_END TREE_2_BEGIN
 TREE_2_BEGIN:
  54 54 layout_row 2 0
- logbuf,←(button 'Button 3')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 3'
- logbuf,←(button 'Button 4')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 4'
- logbuf,←(button 'Button 5')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 5'
- logbuf,←(button 'Button 6')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 6'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 3')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 3'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 4')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 4'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 5')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 5'
+ logbuf_updated∨←0≠≢logbuf,←(button 'Button 6')[RES_SUBMIT]⌿((logbuf≢'')⌿⎕UCS 10),'Pressed button 6'
  end_treenode
 TREE_2_END:
 
