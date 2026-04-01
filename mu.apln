@@ -854,7 +854,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 
 ⍝ Demo Program and Tests
 
-∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks;struct;width;height;state
+∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks;struct;width;height;state;hex
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄  ⋄ checks←1 0 1
  start_time←20 ⎕DT ⊂⎕TS
  
@@ -1092,7 +1092,8 @@ BCKG_BEGIN:
  label 'Blue:' ⋄ color_framebg[2]←⌊1⊃slider 'bg_b'(color_framebg[2])0 255
  layout_end_column
  r←layout_next ⋄ r draw_rect color_framebg
- (1@OPT_ALIGNCENTER⊢MT_OPT)draw_control_text (⍕color_framebg) r color_text
+ hex←'#',∊⍉(⎕D,6↑⎕A)[16 16⊤color_framebg]
+ (1@OPT_ALIGNCENTER⊢MT_OPT)draw_control_text hex r color_text
 BCKG_END:
 
  end_window ⋄ end ⋄ →MAIN
