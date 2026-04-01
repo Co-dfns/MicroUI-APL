@@ -53,6 +53,9 @@ The APIs are almost identical, except in some cases where you need to provide
 a static id for a control where the microui API relies on using the address of 
 the data buffer as the static id.
 
+We add one additional control for RGBA image matrices of the form 
+`image <32-bit RGBA img_matrix>`. 
+
 ## Fenster API
 
 See the `mu.begin_render`, `mu.do_render`, and `mu.end_render` functions for 
