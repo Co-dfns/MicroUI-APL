@@ -1,3 +1,5 @@
+/* Copyright (c) 2026 Aaron W. Hsu */
+
 #define FENSTER_API __declspec(dllexport)
 
 #include "fenster.h"
