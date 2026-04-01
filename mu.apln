@@ -217,7 +217,7 @@ _←0}
  state←last(256⍴0)0 0
 ∇
 
-∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;cx;cy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;cw;ch;str;a;shifted;unshifted
+∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;ox;oy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;str;a;shifted;unshifted
  z←0 ⋄ i←¯1 ⋄ (last keys mod mouse)←state
 
  fb←height width⍴256⊥3↑color_framebg
@@ -232,17 +232,18 @@ RECT:_ (x y w h) color←cmd ⋄ a←3⊃color
  xi yi←x y+⍳¨0⌈((x+w)(y+h)⌊width height)-x y
  fb[yi;xi]←256⊥⌊((a×3↑color)+[0](255-a)×(3⍴256)⊤fb[yi;xi])÷255
  →∆
-TEXT:_ _ (x y) color str←cmd
+TEXT:_ _ (ox oy) color str←cmd
  h w←⍴a←⊃,/atlas[(32⌈127⌊⎕UCS str)-28] ⋄ a←⌊(a×3⊃color)÷255
- x y w h←x y w h intersect_rects scissor_rect
+ x y w h←ox oy w h intersect_rects scissor_rect
+ w h←0⌈((x+w)(y+h)⌊width height)-x y ⋄ a←a[(⍳h)+y-oy;(⍳w)+x-ox]
  yi xi←y x+⍳¨a↑⍨←0⌈((y+h)(x+w)⌊height width)-y x
  fb[yi;xi]←256⊥⌊(((3↑color)∘.×a)+(255-a)×[1 2](3⍴256)⊤fb[yi;xi])÷255
  →∆
 CLIP:scissor_rect←1⊃cmd ⋄ →∆
-ICON:_ (x y w h)id color←cmd ⋄ icon←⌊((atlas⊃⍨id-1)×3⊃color)÷255
- y x+←⌊(h w-⍴icon)÷2 ⋄ h w←⍴icon ⋄ cx cy cw ch←x y w h intersect_rects scissor_rect
- xi yi←cx cy+⍳¨cw ch←0⌈((cx+cw)(cy+ch)⌊width height)-cx cy
- icon←icon[(⍳ch)+cy-y;(⍳cw)+cx-x]
+ICON:_ (ox oy w h)id color←cmd ⋄ icon←⌊((atlas⊃⍨id-1)×3⊃color)÷255
+ y x+←⌊(h w-⍴icon)÷2 ⋄ h w←⍴icon ⋄ x y w h←ox oy w h intersect_rects scissor_rect
+ xi yi←x y+⍳¨w h←0⌈((x+w)(y+h)⌊width height)-x y
+ icon←icon[(⍳h)+y-oy;(⍳w)+x-ox]
  fb[yi;xi]←256⊥⌊(((3↑color)∘.×icon)+(255-icon)×[1 2](3⍴256)⊤fb[yi;xi])÷255
  →∆
 IMAGE:→∆
