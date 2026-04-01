@@ -241,7 +241,7 @@ TEXT:_ _ (ox oy) color str←cmd
  →∆
 CLIP:scissor_rect←1⊃cmd ⋄ →∆
 ICON:_ (ox oy w h)id color←cmd ⋄ icon←⌊((atlas⊃⍨id-1)×3⊃color)÷255
- y x+←⌊(h w-⍴icon)÷2 ⋄ h w←⍴icon ⋄ x y w h←ox oy w h intersect_rects scissor_rect
+ oy ox+←⌊(h w-⍴icon)÷2 ⋄ h w←⍴icon ⋄ x y w h←ox oy w h intersect_rects scissor_rect
  xi yi←x y+⍳¨w h←0⌈((x+w)(y+h)⌊width height)-x y
  icon←icon[(⍳h)+y-oy;(⍳w)+x-ox]
  fb[yi;xi]←256⊥⌊(((3↑color)∘.×icon)+(255-icon)×[1 2](3⍴256)⊤fb[yi;xi])÷255
