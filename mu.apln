@@ -183,6 +183,8 @@ jump_dst←1
 ⍝ Rendering                                                                    ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
+fenster_dll←'fenster.dll'
+
 kc_shiftable←⎕UCS '`1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ-=[]\;'',./'
 kc_shifted←  ⎕UCS '~!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ_+{}|:"<>?'
 kc_unshifted←⎕UCS '`1234567890abcdefghijklmnopqrstuvwxyz-=[]\;'',./'
@@ -198,11 +200,11 @@ _←0}
 ∇{(struct state)}←begin_render(title width height);tie
  z←0
  
- 'fenster_open'⎕NA 'P fenster.dll|fenster_open_apl <0C[] I4 I4 <U4[]'
- 'fenster_loop'⎕NA 'P fenster.dll|fenster_loop_apl P <PP >I4[256] >I4 >I4 >I4 >I4'
- 'fenster_close'⎕NA 'fenster.dll|fenster_close_apl P'
- 'fenster_sleep'⎕NA 'fenster.dll|fenster_sleep I4'
- 'fenster_time'⎕NA 'I8 fenster.dll|fenster_time'
+ 'fenster_open'⎕NA 'P ',fenster_dll,'|fenster_open_apl <0C[] I4 I4 <U4[]'
+ 'fenster_loop'⎕NA 'P ',fenster_dll,'|fenster_loop_apl P <PP >I4[256] >I4 >I4 >I4 >I4'
+ 'fenster_close'⎕NA '',fenster_dll,'|fenster_close_apl P'
+ 'fenster_sleep'⎕NA '',fenster_dll,'|fenster_sleep I4'
+ 'fenster_time'⎕NA 'I8 ',fenster_dll,'|fenster_time'
  
  init
  
