@@ -63,3 +63,8 @@ usage of the fenster API. We remain mostly compatible with the fenster API
 except that we do not provide explicit `fenster_pixel` macros, since APL 
 already provides these well enough. Additionally, you must ensure that 
 the framebuffer you pass to fenster is of 32-bit integer type.
+
+## Known Issues
+
+* Currently, closing a fenster window on Windows can cause the entire APL 
+system to close down. This is inconsistent however. 
