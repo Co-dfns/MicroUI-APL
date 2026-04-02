@@ -56,6 +56,17 @@ the data buffer as the static id.
 We add one additional control for RGBA image matrices of the form 
 `image <32-bit RGBA img_matrix>`. 
 
+###  Features
+
+From rxi's microui description:
+
+* Tiny: around 1100 sloc of ANSI C
+* Works within a fixed-sized memory region: no additional memory is allocated
+* Built-in controls: window, scrollable panel, button, slider, textbox, label, checkbox, wordwrapped text
+* Works with any rendering system that can draw rectangles and text
+* Designed to allow the user to easily add custom controls
+* Simple layout system
+
 ## Fenster API
 
 See the `mu.begin_render`, `mu.do_render`, and `mu.end_render` functions for 
@@ -63,6 +74,30 @@ usage of the fenster API. We remain mostly compatible with the fenster API
 except that we do not provide explicit `fenster_pixel` macros, since APL 
 already provides these well enough. Additionally, you must ensure that 
 the framebuffer you pass to fenster is of 32-bit integer type.
+
+### Features
+
+From zserge's fenster description:
+
+Fenster /ˈfɛnstɐ/ -- a German word for "window".
+
+This library provides the most minimal and highly opinionated way to display a cross-platform 2D canvas. If you remember Borland BGI or drawing things in QBASIC or INT 10h- you know what I mean. As a nice bonus you also get cross-platform keyboard/mouse input and audio playback in only a few lines of code.
+
+What it does for you:
+
+* Single application window of given size with a title.
+* Application lifecycle and system events are all handled automatically.
+* Minimal 24-bit RGB framebuffer.
+* Cross-platform keyboard events (keycodes).
+* Cross-platform mouse events (X/Y + mouse click).
+* Cross-platform timers to have a stable FPS rate.
+* Cross-platform audio playback (WinMM, CoreAudio, ALSA).
+* Simple polling API without a need for callbacks or multithreading (like Arduino/Processing).
+* One C99 header of ~300LOC, easy to understand and extend.
+* Go bindings (import "github.com/zserge/fenster", see godoc)
+* Zig bindings (see examples/minimal-zig)
+* Lua bindings (see https://github.com/jonasgeiler/lua-fenster)
+* And, yes, it can run Doom!
 
 ## Known Issues
 
