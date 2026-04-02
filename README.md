@@ -1,6 +1,6 @@
-![MicroUI Screenshot](https://github.com/Co-dfns/MicroUI-APL/blob/master/doc/screenshot_z2.png?raw=true)
-
 # MicroUI for APL: rxi's microui + built-in fenster renderer
+
+![MicroUI Screenshot](https://github.com/Co-dfns/MicroUI-APL/blob/master/doc/screenshot_z2.png?raw=true)
 
 This is a relatively faithful reimplementation of rxi's
 [microui](https://github.com/rxi/microui) in pure APL. 
