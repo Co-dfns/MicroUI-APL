@@ -219,11 +219,10 @@ _←0}
  state←last(256⍴0)0 0
 ∇
 
-∇{(z state)}←do_render(struct width height state);i;cmd;fb;width;last;keys;mod;x;y;ox;oy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;str;a;shifted;unshifted;img
- z←0 ⋄ i←¯1 ⋄ (last keys mod mouse)←state
+∇{(z state)}←{fb}do_render(struct width height state);i;cmd;width;last;keys;mod;x;y;ox;oy;mouse;scissor_rect;xi;yi;id;color;icon;w;h;str;a;shifted;unshifted;img
+ z←0 ⋄ i←¯1 ⋄ (last keys mod mouse)←state ⋄ scissor_rect←UNCLIPPED_RECT
 
- fb←height width⍴256⊥3↑color_framebg
- scissor_rect←UNCLIPPED_RECT
+ →∆⍴⍨0≠⎕NC'fb' ⋄ fb←height width⍴256⊥3↑color_framebg
 
 ∆:
  →END⌿⍨¯1=i←next_command i
