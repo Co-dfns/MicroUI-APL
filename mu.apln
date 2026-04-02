@@ -252,8 +252,8 @@ IMAGE:_ img (ox oy w h)←cmd ⋄ h w⌊←⍴img
  x y w h←ox oy w h intersect_rects scissor_rect
  x y w h←x y w h intersect_rects 0 0 width height
  xi yi←x y+⍳¨w h
- img←(4⍴256)⊤img[(⍳h)+y-oy;(⍳w)+x-ox] ⋄ a←3⌷img ⋄ img←3↑img
- fb[yi;xi]←256⊥⌊((img×[1 2]a)+(255-a)×[1 2](3⍴256)⊤fb[yi;xi])÷255
+ img←(4⍴256)⊤img[(⍳h)+y-oy;(⍳w)+x-ox] ⋄ a←0⌷img ⋄ img←¯3↑img
+ fb[yi;xi]←256⊥⌊((a×[1 2]img)+(255-a)×[1 2](3⍴256)⊤fb[yi;xi])÷255
  →∆
 END:
  →0⍴⍨⊃(z ∆keys ∆mod x y ∆mouse)←fenster_loop struct fb 256 1 1 1 1
@@ -873,7 +873,7 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
  start_time←20 ⎕DT ⊂⎕TS
  
  tie←'resources\logo'⎕FTIE 0
- img←256⊥((3⍴256)⊤⎕FREAD tie 1)⍪255
+ img←⎕FREAD tie 1
  ⎕FUNTIE tie
  
  width height←1024 768
