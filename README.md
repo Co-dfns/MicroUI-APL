@@ -60,7 +60,7 @@ We add one additional control for RGBA image matrices of the form
 
 From rxi's microui description:
 
-* Tiny: around 1100 sloc of ANSI C
+* Tiny: around ~~1100 sloc of ANSI C~~ 750 sloc of APL
 * Works within a fixed-sized memory region: no additional memory is allocated
 * Built-in controls: window, scrollable panel, button, slider, textbox, label, checkbox, wordwrapped text
 * Works with any rendering system that can draw rectangles and text
@@ -84,7 +84,6 @@ Fenster /ˈfɛnstɐ/ -- a German word for "window".
 This library provides the most minimal and highly opinionated way to display a cross-platform 2D canvas. If you remember Borland BGI or drawing things in QBASIC or INT 10h- you know what I mean. As a nice bonus you also get cross-platform keyboard/mouse input and audio playback in only a few lines of code.
 
 What it does for you:
-
 * Single application window of given size with a title.
 * Application lifecycle and system events are all handled automatically.
 * Minimal 24-bit RGB framebuffer.
@@ -94,9 +93,6 @@ What it does for you:
 * Cross-platform audio playback (WinMM, CoreAudio, ALSA).
 * Simple polling API without a need for callbacks or multithreading (like Arduino/Processing).
 * One C99 header of ~300LOC, easy to understand and extend.
-* Go bindings (import "github.com/zserge/fenster", see godoc)
-* Zig bindings (see examples/minimal-zig)
-* Lua bindings (see https://github.com/jonasgeiler/lua-fenster)
 * And, yes, it can run Doom!
 
 ## Known Issues
