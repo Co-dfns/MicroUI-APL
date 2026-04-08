@@ -69,6 +69,111 @@ From rxi's microui description:
 * Designed to allow the user to easily add custom controls
 * Simple layout system
 
+### APL API
+
+	⍝ Constants
+	CLIP_PART CLIP_ALL
+	
+	COMMAND_JUMP COMMAND_CLIP COMMAND_RECT COMMAND_TEXT COMMAND_ICON COMMAND_IMAGE
+	
+	ICON_CLOSE ICON_CHECK ICON_COLLAPSED ICON_EXPANDED
+	
+	RES_ACTIVE RES_SUBMIT RES_CHANGE
+	
+	OPT_ALIGNCENTER OPT_ALIGNRIGHT OPT_NOINTERACT OPT_NOFRAME OPT_NORESIZE
+	OPT_NOSCROLL OPT_NOCLOSE OPT_NOTITLE OPT_HOLDFOCUS OPT_AUTOSIZE OPT_POPUP
+	OPT_CLOSED OPT_EXPANDED
+	
+	MOUSE_LEFT MOUSE_RIGHT MOUSE_MIDDLE
+	
+	KEY_SHIFT KEY_CTRL KEY_ALT KEY_BACKSPACE KEY_RETURN
+	
+	RELATIVE ABSOLUTE
+	
+	⍝ Empty Structures
+	MT_RES MT_OPT MT_MOUSE MT_KEY MT_RECT MT_VEC
+	
+	⍝ Core Functions
+	{}	←init
+	{}	←begin
+	{}	←end
+	{}	←set_focus id
+	id	←get_id data
+	{}	←push_id id
+	{}	←pop_id
+	{}	←push_clip_rect rect
+	{}	←pop_clip_rect
+	rect	←get_clip_rect
+	CLIP	←check_clip rect
+	
+	⍝ Containers
+	cnt_id	←get_current_container
+	cnt_id	←get_container data
+	cnt_id	←bring_to_front cnt_id
+	
+	⍝ Pools
+	pool_id	←pool pool_get id
+	pool_id	←pool_init_container id
+	pool_id	←pool_init_treenode id
+	pool_id	←pool_update_container pool_id
+	pool_id	←pool_update_treenode pool_id
+	
+	⍝ Input Handlers
+	{}	←	input_mousemove(x y)
+	{}	←MOUSE	input_mousedown(x y)
+	{}	←MOUSE	input_mouseup(x y)
+	{}	←	input_scroll(x y)
+	{}	←	input_keydown KEY
+	{}	←	input_keyup KEY
+	{}	←	input_text str
+	
+	⍝ Command List
+	{}	←push_command COMMAND,args ...
+	cmd_id	←next_command cmd_id
+	{}	←set_clip rect
+	{}	←rect draw_rect color
+	{}	←rect draw_box color
+	{}	←font draw_text(str pos color)
+	{}	←icon draw_icon(rect color)
+	{}	←img  draw_image rect
+	
+	⍝ Layout
+	{}	←widths layout_row(count height)
+	{}	←layout_width width
+	{}	←layout_height height
+	{}	←layout_begin_column
+	{}	←layout_end_column
+	{}	←ABSOLUTE|RELATIVE layout_set_next rect
+	rect	←layout_next
+	
+	⍝ Control API
+	{}	←OPT	draw_control_frame(id rect color color_hover color_focus)
+	{}	←OPT	draw_control_frame_button(id rect)
+	{}	←OPT	draw_control_frame_base(id rect)
+	{}	←OPT	draw_control_text(str rect color)
+	bool	←	mouse_over rect
+	{}	←opt	update_control(id rect)
+	
+	⍝ Controls
+	{}	←	text str
+	{}	←	label str
+	{}	←	image img
+	RES	←OPT	button label
+	RES	←id	checkbox(label checked)
+	RES	←OPT	textbox(label buf)
+	RES	←OPT	slider(id value low high [step spec])
+	RES	←OPT	number(id value [step fmt])
+	RES	←OPT	header label
+	RES	←OPT	begin_treenode label
+	{}	←	end_treenode
+	RES	←OPT	begin_window(title rect)
+	{}	←	end_window
+	{}	←	open_popup name
+	RES	←	begin_popup name
+	{}	←	end_popup
+	{}	←OPT	begin_panel name
+	{}	←	end_panel
+
 ## Fenster API
 
 See the `mu.begin_render`, `mu.do_render`, and `mu.end_render` functions for 
