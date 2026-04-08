@@ -363,7 +363,6 @@ push_command←{command_list[command_list_idx]←⊂⍵ ⋄ command_list_idx+←
 
 ∇cmd←next_command cmd
  cmd+←1
- 
 ∆:→END⌿⍨cmd≥command_list_idx ⋄ →JMP⌿⍨COMMAND_JUMP=⊃cmd⊃command_list ⋄ →NOTJMP
 JMP:	cmd←cmd jump_dst⊃command_list 	⋄ →∆
 NOTJMP:					⋄ →0
@@ -689,7 +688,6 @@ scrollbars←{cnt←⍺ ⋄ body←⍵
 
 ∇res←{opt}begin_window(title rect);cnt;id;body;tr;r;sz
  res←MT_RES ⋄ →∆⍴⍨0≠⎕NC'opt' ⋄ opt←MT_OPT
- 
 ∆:cnt←opt get_container_id id←get_id title
  →0⍴⍨¯1=cnt ⋄ →0⍴⍨~containers[cnt;cnt_open]
  id_stack[id_stack_idx]←id ⋄ id_stack_idx+←1
@@ -698,7 +696,6 @@ scrollbars←{cnt←⍺ ⋄ body←⍵
  begin_root_container cnt
  rect←body←containers[cnt;cnt_rect]
  {}draw_frame⍣(~opt[OPT_NOFRAME])⊢rect color_windowbg
-
  →opt[OPT_NOTITLE]⍴DRAW_RESIZE_HANDLE
  tr←style_title_height@3⊢rect
  0 draw_frame tr color_titlebg
@@ -707,14 +704,12 @@ scrollbars←{cnt←⍺ ⋄ body←⍵
  opt draw_control_text title tr color_titletext
  containers[cnt;2↑cnt_rect]+←mouse_delta×(focus=id)∧1 0 0≡mouse_down
  body[1 3]+←1 ¯1×style_title_height
- 
  →opt[OPT_NOCLOSE]⍴DRAW_RESIZE_HANDLE
  id←get_id '!close'
  r←((tr[0]+tr[2])-tr[3]),tr[1 3 3] ⋄ tr[2]-←r[2]
  ICON_CLOSE draw_icon r color_titletext
  opt update_control id r
  containers[cnt;cnt_open]×←(focus=id)⍲1 0 0≡mouse_pressed 
-
 DRAW_RESIZE_HANDLE:
  opt push_container_body cnt body
  →opt[OPT_NORESIZE]⍴RESIZE_TO_CONTENT
@@ -724,14 +719,11 @@ DRAW_RESIZE_HANDLE:
  opt update_control id r
  →RESIZE_TO_CONTENT⍴⍨(focus=id)⍲1 0 0≡mouse_down
  containers[cnt;¯2↑cnt_rect]←96 64⌈containers[cnt;¯2↑cnt_rect]+mouse_delta
- 
 RESIZE_TO_CONTENT:→(~opt[OPT_AUTOSIZE])⍴CLOSE_IF_POPUP
  containers[cnt;¯2↑cnt_rect]-←layout_stack[get_layout;¯2↑lyt_body]
  containers[cnt;¯2↑cnt_rect]+←containers[cnt;cnt_content_size]
-
 CLOSE_IF_POPUP:
  containers[cnt;cnt_open]×←~opt[OPT_POPUP]∧(∨⌿mouse_pressed)∧hover_root≠cnt
-
  push_clip_rect containers[cnt;cnt_body]
  res[RES_ACTIVE]←1
 ∇
