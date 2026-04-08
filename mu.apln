@@ -859,7 +859,7 @@ END:
 
 ∇demo;panel;logbuf;submitted;logbuf_updated;buf;res;sw;opt;start_time;win;r;lorem;checks;struct;width;height;state;hex;img;tie
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄  ⋄ checks←1 0 1
- start_time←20 ⎕DT ⊂⎕TS
+ start_time←11 ⎕DT ⊂⎕TS
  
  tie←'resources\logo'⎕FTIE 0
  img←⎕FREAD tie 1
@@ -876,7 +876,7 @@ FRAME_RATE:res←begin_window 'Stats' ((width-128) 0 128 55)
  →FRAME_RATE_CLOSED FRAME_RATE_OPEN[RES_ACTIVE⊃res]
 FRAME_RATE_CLOSED:→STYLE_WIN
 FRAME_RATE_OPEN:
- label ⍕(⌊frame÷1⌈(20⎕DT ⊂⎕TS)-start_time)'fps'
+ label ⍕(⌊1000×frame÷(11⎕DT ⊂⎕TS)-start_time)'fps'
  end_window
  →STYLE_WIN
 
