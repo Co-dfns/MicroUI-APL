@@ -793,7 +793,7 @@ _←0}
  last		←fenster_time
  color_framebg	←90 95 100 255
 
- tie←'resources\atlas'⎕FTIE 0
+ tie←'atlas'⎕FTIE 0
  atlas←(atlas_boxes←⎕FREAD tie 2){x y w h←⍺ ⋄ ⊂⍵[y+⍳h;x+⍳w]}⍤1 2⊢⎕FREAD tie 1
  ⎕FUNTIE tie
  
@@ -861,7 +861,7 @@ END:
  logbuf←'' ⋄ logbuf_updated←0 ⋄ buf←'' ⋄  ⋄ checks←1 0 1
  start_time←11 ⎕DT ⊂⎕TS
  
- tie←'resources\logo'⎕FTIE 0
+ tie←'logo'⎕FTIE 0
  img←⎕FREAD tie 1
  ⎕FUNTIE tie
  
