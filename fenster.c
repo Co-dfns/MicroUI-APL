@@ -66,7 +66,7 @@ FENSTER_API int
 fenster_loop_apl(struct fenster *f, struct localp *lp,
     int keys[256], int *mod, int *x, int *y, int *mouse)
 {
-	f->buf = DATA(lp->pocket);
+	memcpy(f->buf, DATA(lp->pocket), f->width*f->height*sizeof(*f->buf));
 	
 	if (fenster_loop(f))
 		return 1;
