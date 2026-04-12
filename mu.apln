@@ -772,14 +772,14 @@ kc_shifted←  ⎕UCS '~!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ_+{}|:"<>?'
 kc_unshifted←⎕UCS '`1234567890abcdefghijklmnopqrstuvwxyz-=[]\;'',./'
 
 text_width←{0=≢⍵:0 ⋄ +⌿atlas_boxes[(32⌈127⌊⎕UCS ⍵)-28;2]}
-text_height←{18}
+text_height←{atlas_boxes[0;3]}
 
 draw_frame←{⍺←1 ⋄ rect color←⍵
 	rect draw_rect color:
 	⍺∧0≠3⊃color_border:(rect expand_rect 1)draw_box color_border
 _←0}
 
-∇{(struct state)}←begin_render(title width height);tie
+∇{(struct state)}←{font}begin_render(title width height);tie
  z←0
  
  'fenster_open'⎕NA 'P ',fenster_dll,'|fenster_open_apl <0C[] I4 I4 <U4[]'
@@ -793,10 +793,21 @@ _←0}
  last		←fenster_time
  color_framebg	←90 95 100 255
 
+ →FONT_BEGIN FONT_END[0≠⎕NC'font']
+FONT_BEGIN:
+ font		←1 2
+FONT_END:
+
+ style_font		←font
+
  tie←'atlas'⎕FTIE 0
- atlas←(atlas_boxes←⎕FREAD tie 2){x y w h←⍺ ⋄ ⊂⍵[y+⍳h;x+⍳w]}⍤1 2⊢⎕FREAD tie 1
+ atlas_boxes←⎕FREAD tie (style_font[1])
+ atlas←atlas_boxes{x y w h←⍺ ⋄ ⊂⍵[y+⍳h;x+⍳w]}⍤1 2⊢⎕FREAD tie (style_font[0])
  ⎕FUNTIE tie
  
+ style_size[1]		←5+text_height''
+ style_title_height	←style_size[1]
+
  struct←fenster_open title width height (,height width⍴256⊥3↑color_framebg)
  state←last(256⍴0)0 0
 ∇
