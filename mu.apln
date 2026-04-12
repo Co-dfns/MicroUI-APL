@@ -102,6 +102,14 @@ jump_dst←1
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
 ∇{Z}←init
+⍝ Dynamic State
+ MT_LAYOUT	←MT_RECT,MT_RECT,MT_VEC,MT_VEC,MT_VEC,(MAX_WIDTHS⍴0),0,0,0,0,0
+
+ lyt_widths				←14+⍳MAX_WIDTHS
+ lyt_items	lyt_item_index		←(⊃⌽lyt_widths)+1 2
+ lyt_next_row 	lyt_next_type		←lyt_item_index+1 2
+ lyt_indent				←lyt_next_type+1
+
 ⍝ Default Style
  style_font		←0
  style_size		←68 10
