@@ -155,24 +155,24 @@ From rxi's microui description:
 	{}	←{OPT}	update_control(id rect)
 	
 	⍝ Controls
-	{}	←	text str
-	{}	←	label str
-	{}	←	image img
-	RES	←{OPT}	button label
-	RES	←id	checkbox(label checked)
-	RES	←{OPT}	textbox(label buf)
-	RES	←{OPT}	slider(id value low high [step spec])
-	RES	←{OPT}	number(id value [step fmt])
-	RES	←{OPT}	header label
-	RES	←{OPT}	begin_treenode label
-	{}	←	end_treenode
-	RES	←{OPT}	begin_window(title rect)
-	{}	←	end_window
-	{}	←	open_popup name
-	RES	←	begin_popup name
-	{}	←	end_popup
-	{}	←{OPT}	begin_panel name
-	{}	←	end_panel
+	{}		←	text str
+	{}		←	label str
+	{}		←	image img
+	RES		←{OPT}	button label
+	RES checked	←id	checkbox(label checked)
+	RES buf		←{OPT}	textbox(label buf)
+	RES value	←{OPT}	slider(id value low high [step spec])
+	RES value	←{OPT}	number(id value [step fmt])
+	RES		←{OPT}	header label
+	RES		←{OPT}	begin_treenode label
+	{}		←	end_treenode
+	RES		←{OPT}	begin_window(title rect)
+	{}		←	end_window
+	{}		←	open_popup name
+	RES		←	begin_popup name
+	{}		←	end_popup
+	{}		←{OPT}	begin_panel name
+	{}		←	end_panel
 
 ## Fenster API
 
