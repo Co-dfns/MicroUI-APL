@@ -55,6 +55,11 @@ struct fenster {
   id wnd;
 #elif defined(_WIN32)
   HWND hwnd;
+  int display_width;
+  int display_height;
+  int xorigin;
+  int yorigin;
+  float scale;
 #else
   Display *dpy;
   Window w;
@@ -188,6 +193,9 @@ FENSTER_API int fenster_loop(struct fenster *f) {
   return 0;
 }
 #elif defined(_WIN32)
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 // clang-format off
 static const uint8_t FENSTER_KEYCODES[] = {0,27,49,50,51,52,53,54,55,56,57,48,45,61,8,9,81,87,69,82,84,89,85,73,79,80,91,93,10,0,65,83,68,70,71,72,74,75,76,59,39,96,0,92,90,88,67,86,66,78,77,44,46,47,0,0,0,32,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,17,3,0,20,0,19,0,5,18,4,26,127};
 // clang-format on
@@ -199,23 +207,50 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
                                         LPARAM lParam) {
   struct fenster *f = (struct fenster *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
   switch (msg) {
+  case WM_GETMINMAXINFO:
+  {
+    LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+    if (f!=NULL)
+    {
+      RECT wr = {0, 0, 0, 0};
+      wr.right = f->width;
+      wr.bottom = f->height;
+      AdjustWindowRectEx(&wr, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_CLIENTEDGE);
+      
+      lpMMI->ptMinTrackSize.x = wr.right-wr.left;
+      lpMMI->ptMinTrackSize.y = wr.bottom-wr.top;
+    }
+  } break;
   case WM_PAINT: {
+    BITMAPINFO bmi = {
+      .bmiHeader.biSize = sizeof(BITMAPINFOHEADER),
+      .bmiHeader.biBitCount = 32,
+      .bmiHeader.biCompression = BI_RGB,
+      .bmiHeader.biPlanes = 1,
+      .bmiHeader.biWidth = f->width,
+      .bmiHeader.biHeight = -f->height
+    };
+    f->scale = MIN((float)f->display_width/f->width, (float)f->display_height/f->height);
+    int draw_width = f->width*f->scale;
+    int draw_height = f->height*f->scale;
+    f->xorigin=(f->display_width-draw_width)/2;
+    f->yorigin=(f->display_height-draw_height)/2;
+    StretchDIBits(GetDC(hwnd),
+      f->xorigin, f->yorigin, draw_width, draw_height,
+      0, 0, f->width, f->height,
+      f->buf, &bmi, DIB_RGB_COLORS, SRCCOPY);
+    ValidateRect(hwnd,0);  
+  } break;
+  case WM_SIZE:{
+    f->display_width = LOWORD(lParam);
+    f->display_height = HIWORD(lParam);
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
-    HDC memdc = CreateCompatibleDC(hdc);
-    HBITMAP hbmp = CreateCompatibleBitmap(hdc, f->width, f->height);
-    HBITMAP oldbmp = SelectObject(memdc, hbmp);
-    BINFO bi = {{sizeof(bi), f->width, -f->height, 1, 32, BI_BITFIELDS}};
-    bi.bmiColors[0].rgbRed = 0xff;
-    bi.bmiColors[1].rgbGreen = 0xff;
-    bi.bmiColors[2].rgbBlue = 0xff;
-    SetDIBitsToDevice(memdc, 0, 0, f->width, f->height, 0, 0, 0, f->height,
-                      f->buf, (BITMAPINFO *)&bi, DIB_RGB_COLORS);
-    BitBlt(hdc, 0, 0, f->width, f->height, memdc, 0, 0, SRCCOPY);
-    SelectObject(memdc, oldbmp);
-    DeleteObject(hbmp);
-    DeleteDC(memdc);
+    HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
+    FillRect(hdc, &ps.rcPaint, brush);
+    DeleteObject(brush);
     EndPaint(hwnd, &ps);
+    RedrawWindow(hwnd, 0, 0, RDW_INVALIDATE | RDW_UPDATENOW);
   } break;
   case WM_CLOSE:
     DestroyWindow(hwnd);
@@ -225,7 +260,8 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
     f->mouse = (msg == WM_LBUTTONDOWN);
     break;
   case WM_MOUSEMOVE:
-    f->y = HIWORD(lParam), f->x = LOWORD(lParam);
+    f->y = ((float)HIWORD(lParam) - (float)f->yorigin)/f->scale;
+    f->x = ((float)LOWORD(lParam) - (float)f->xorigin)/f->scale;
     break;
   case WM_KEYDOWN:
   case WM_KEYUP: {
@@ -247,19 +283,19 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
 FENSTER_API int fenster_open(struct fenster *f) {
   HINSTANCE hInstance = GetModuleHandle(NULL);
   WNDCLASSEX wc = {0};
+  RECT wr = {0, 0, 0, 0};
+  wr.right = f->width;
+  wr.bottom = f->height;
+  AdjustWindowRectEx(&wr, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_CLIENTEDGE);
   wc.cbSize = sizeof(WNDCLASSEX);
   wc.style = CS_VREDRAW | CS_HREDRAW;
   wc.lpfnWndProc = fenster_wndproc;
   wc.hInstance = hInstance;
   wc.lpszClassName = f->title;
   RegisterClassEx(&wc);
-  RECT desiredRect = {0, 0, f->width, f->height};
-  AdjustWindowRectEx(&desiredRect, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_CLIENTEDGE);
-  int adjustedWidth = desiredRect.right - desiredRect.left;
-  int adjustedHeight = desiredRect.bottom - desiredRect.top;
   f->hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, f->title, f->title,
                            WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-                           adjustedWidth, adjustedHeight, NULL, NULL, hInstance, NULL);
+                           wr.right - wr.left, wr.bottom - wr.top, NULL, NULL, hInstance, NULL);
 
   if (f->hwnd == NULL)
     return -1;
