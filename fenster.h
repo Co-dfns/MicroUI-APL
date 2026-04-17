@@ -235,11 +235,13 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
     int draw_height = f->height*f->scale;
     f->xorigin=(f->display_width-draw_width)/2;
     f->yorigin=(f->display_height-draw_height)/2;
-    StretchDIBits(GetDC(hwnd),
+    HDC hDC = GetDC(hwnd);
+    StretchDIBits(hDC,
       f->xorigin, f->yorigin, draw_width, draw_height,
       0, 0, f->width, f->height,
       f->buf, &bmi, DIB_RGB_COLORS, SRCCOPY);
     ValidateRect(hwnd,0);  
+    ReleaseDC(hwnd, hDC);
   } break;
   case WM_SIZE:{
     f->display_width = LOWORD(lParam);
