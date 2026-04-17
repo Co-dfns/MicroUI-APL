@@ -256,6 +256,7 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
   } break;
   case WM_CLOSE:
     DestroyWindow(hwnd);
+    f->hwnd = NULL;
     break;
   case WM_LBUTTONDOWN:
   case WM_LBUTTONUP:
@@ -274,7 +275,6 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
     f->keys[FENSTER_KEYCODES[HIWORD(lParam) & 0x1ff]] = !((lParam >> 31) & 1);
   } break;
   case WM_DESTROY:
-    PostQuitMessage(0);
     break;
   default:
     return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -307,12 +307,17 @@ FENSTER_API int fenster_open(struct fenster *f) {
   return 0;
 }
 
-FENSTER_API void fenster_close(struct fenster *f) { (void)f; }
+FENSTER_API void fenster_close(struct fenster *f) { 
+	if (f->hwnd != NULL) {
+		DestroyWindow(f->hwnd);
+		f->hwnd = NULL;
+	}
+}
 
 FENSTER_API int fenster_loop(struct fenster *f) {
   MSG msg;
   while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-    if (msg.message == WM_QUIT)
+    if (f->hwnd == NULL)
       return -1;
     TranslateMessage(&msg);
     DispatchMessage(&msg);
