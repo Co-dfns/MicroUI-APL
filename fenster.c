@@ -33,27 +33,38 @@ DyalogGetInterpreterFunctions(void *p)
 
 
 FENSTER_API struct fenster *
-fenster_open_apl(const char *title, int width, int height, uint32_t *buf)
+fenster_open_apl(const char *title, int width, int height, uint16_t *buf)
 {
 	struct fenster *f;
 	void *bufp, *titlep;
 	size_t sz, bs;
 	
-	sz = sizeof(*f)+strlen(title)+1+width*height*sizeof(*buf);
+	bs = width*height*sizeof(*f->buf);
+	sz = sizeof(*f)+strlen(title)+1+bs;
 	
 	if ((f = malloc(sz)) == NULL)
 		return 0;
 	
 	bufp = &f[1];
-	bs = width*height*sizeof(*buf);
-	memcpy(bufp, buf, bs);
-	
 	titlep = ((char *)bufp)+bs;
 	strcpy(titlep, title);
 	
 	struct fenster fv = {titlep, width, height, bufp, 0};
 	memcpy(f, &fv, sizeof(*f));
 	
+	for (int i = 0; i < f->height; i++) {
+		for (int j = 0; j < f->width; j++) {
+			int x = i * f->width + j;
+			uint32_t p = 0;
+			
+			p  = (uint32_t)buf[x + 0] << 16;
+			p |= (uint32_t)buf[x + 1] << 8;
+			p |= (uint32_t)buf[x + 2];
+			
+			fenster_pixel(f, j, i) = p;
+		}
+	}
+
 	if (fenster_open(f)) {
 		free(f);
 		return NULL;
@@ -66,7 +77,20 @@ FENSTER_API int
 fenster_loop_apl(struct fenster *f, struct localp *lp,
     int keys[256], int *mod, int *x, int *y, int *mouse)
 {
-	memcpy(f->buf, DATA(lp->pocket), f->width*f->height*sizeof(*f->buf));
+	uint16_t *buf = DATA(lp->pocket);
+	
+	for (int i = 0; i < f->height; i++) {
+		for (int j = 0; j < f->width; j++) {
+			int x = (i * f->width + j) * 3;
+			uint32_t p = 0;
+			
+			p  = (uint32_t)buf[x + 0] << 16;
+			p |= (uint32_t)buf[x + 1] << 8;
+			p |= (uint32_t)buf[x + 2];
+			
+			fenster_pixel(f, j, i) = p;
+		}
+	}
 	
 	if (fenster_loop(f))
 		return 1;
