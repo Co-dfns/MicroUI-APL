@@ -52,17 +52,17 @@ fenster_open_apl(const char *title, int width, int height, uint16_t *buf)
 	struct fenster fv = {titlep, width, height, bufp, 0};
 	memcpy(f, &fv, sizeof(*f));
 	
-	for (int i = 0; i < f->height; i++) {
-		for (int j = 0; j < f->width; j++) {
-			int x = i * f->width + j;
-			uint32_t p = 0;
-			
-			p  = (uint32_t)buf[x + 0] << 16;
-			p |= (uint32_t)buf[x + 1] << 8;
-			p |= (uint32_t)buf[x + 2];
-			
-			fenster_pixel(f, j, i) = p;
-		}
+	for (int i = 0; i < f->height * f->width; i++) {
+		uint32_t p;
+		int j;
+		
+		j = i * 3;
+		
+		p  = (uint32_t)buf[j + 0] << 16;
+		p |= (uint32_t)buf[j + 1] << 8;
+		p |= (uint32_t)buf[j + 2];
+		
+		f->buf[i] = p;
 	}
 
 	if (fenster_open(f)) {
@@ -79,17 +79,17 @@ fenster_loop_apl(struct fenster *f, struct localp *lp,
 {
 	uint16_t *buf = DATA(lp->pocket);
 	
-	for (int i = 0; i < f->height; i++) {
-		for (int j = 0; j < f->width; j++) {
-			int x = (i * f->width + j) * 3;
-			uint32_t p = 0;
-			
-			p  = (uint32_t)buf[x + 0] << 16;
-			p |= (uint32_t)buf[x + 1] << 8;
-			p |= (uint32_t)buf[x + 2];
-			
-			fenster_pixel(f, j, i) = p;
-		}
+	for (int i = 0; i < f->height * f->width; i++) {
+		uint32_t p;
+		int j;
+		
+		j = i * 3;
+		
+		p  = (uint32_t)buf[j + 0] << 16;
+		p |= (uint32_t)buf[j + 1] << 8;
+		p |= (uint32_t)buf[j + 2];
+		
+		f->buf[i] = p;
 	}
 	
 	if (fenster_loop(f))
