@@ -813,8 +813,8 @@ FONT_END:
  atlas←atlas_boxes{x y w h←⍺ ⋄ ⊂⍵[y+⍳h;x+⍳w]}⍤1 2⊢⎕FREAD tie (style_font[0])
  ⎕FUNTIE tie
  
- style_size[1]		←5+text_height''
- style_title_height	←style_size[1]
+ style_size[1]		←text_height''
+ style_title_height	←⌊1.3×style_size[1]
 
  struct←fenster_open title width height (,height width⍴256⊥3↑color_framebg)
  state←last(256⍴0)0 0
