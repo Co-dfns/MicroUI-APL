@@ -13,10 +13,10 @@ running with microui without the need to write the rendering code.
 
 All of the code include demo, fenster, and the microui implementation, 
 rendering code, and comments, comes in at ~1200 lines of code. 
-The `resources` directory includes a 133KB atlas binary needed for the 
+There is a 207KB atlas binary needed for the 
 fenster render to render fonts and icons. This atlas was built using the 
 [Inter](https://fonts.google.com/specimen/Inter) font. The fenster DLL
-comes in around 100KB on my machine, and there are no other dependencies 
+comes in around 105KB on my machine, and there are no other dependencies 
 except for native platform libraries. 
 
 We attempt to ensure that all of the same advantages found in the original 
@@ -56,7 +56,7 @@ a static id for a control where the microui API relies on using the address of
 the data buffer as the static id.
 
 We add one additional control for RGBA image matrices of the form 
-`image <32-bit RGBA img_matrix>`. 
+`image <H W 4⍴pixel_data>`. 
 
 ###  Features
 
@@ -180,7 +180,7 @@ See the `mu.begin_render`, `mu.do_render`, and `mu.end_render` functions for
 usage of the fenster API. We remain mostly compatible with the fenster API 
 except that we do not provide explicit `fenster_pixel` macros, since APL 
 already provides these well enough. Additionally, you must ensure that 
-the framebuffer you pass to fenster is of 32-bit integer type.
+the framebuffer you pass to fenster is an H W 3 shaped array of RGB data.
 
 ### Features
 
@@ -204,5 +204,4 @@ What it does for you:
 
 ## Known Issues
 
-* Currently, closing a fenster window on Windows can cause the entire APL 
-system to close down. This is inconsistent however. 
+* Rendering in APL is currently slower than desirable
