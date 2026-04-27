@@ -1,6 +1,8 @@
 *.dll
+*.dylib
 *.exp
 *.lib
 *.obj
 *.pdb
+*.so
 /microui

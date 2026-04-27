@@ -37,6 +37,11 @@ If you wish to use the fenster rendering, you'll need to compile
 	cl /LD fenster.c user32.lib gdi32.lib 
 	# Linux
 	cc -shared -o fenster.so fenster.c -lX11 -lasound
+	# macOS
+	clang -dynamiclib -fdeclspec -o fenster.dylib fenster.c -framework Cocoa -framework AudioToolbox
+
+`mu.fenster_dll` defaults to `'fenster.dll'`; on Linux set it to `'./fenster.so'` 
+and on macOS set it to `'./fenster.dylib'` before calling `mu.demo`. 
 
 You should be able to then run the `mu.demo` and see everything working. 
 
