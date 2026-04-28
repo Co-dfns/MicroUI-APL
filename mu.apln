@@ -773,7 +773,8 @@ begin_panel←{⍺←MT_OPT ⋄ opt←⍺ ⋄ name←⍵
 ⍝ Rendering                                                                    ⍝
 ⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝⍝
 
-fenster_dll←'fenster.dll'
+dll_ext←('.dll' '.so' '.dylib')⊃⍨('Windows' 'Linux' 'Mac')⍳⊂'-64'~⍨⊃#⎕WG'APLVersion'	
+fenster_dll←'fenster',dll_ext
 
 kc_shiftable←⎕UCS '`1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ-=[]\;'',./'
 kc_shifted←  ⎕UCS '~!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ_+{}|:"<>?'
