@@ -37,6 +37,8 @@ If you wish to use the fenster rendering, you'll need to compile
 	cl /LD fenster.c user32.lib gdi32.lib 
 	# Linux
 	cc -shared -o fenster.so fenster.c -lX11 -lasound
+	# MacOS
+	cc -dynamiclib -o fenster.dylib fenster.c -framework Cocoa -framework AudioToolbox -fms-extensions
 
 You should be able to then run the `mu.demo` and see everything working. 
 
@@ -205,3 +207,5 @@ What it does for you:
 ## Known Issues
 
 * Rendering in APL is currently slower than desirable
+* Running this on MacOS requires turning off the Chromium Embedded Framework `ENABLE_CEF=0` in the Dyalog Interpreter to work.
+* Closing the fenster window on MacOS has a chance of causing the APL interpeter to turn off. 
